@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#141513">
   <link rel="icon" href="data:,">
-  <title>额吉 · v1.5 终检修订竖切 Demo</title>
-  <link rel="stylesheet" href="styles.css?v=1.6.1">
+  <title>额吉 · v1.6 可玩性修订竖切 Demo</title>
+  <link rel="stylesheet" href="styles.css?v=1.6.3">
 </head>
 <body>
   <div id="film-grain" aria-hidden="true"></div>
@@ -16,13 +16,14 @@
     <section id="title-screen" class="screen is-active" aria-labelledby="title-heading">
       <div class="title-grid">
         <div class="title-copy">
-          <p class="kicker">生存叙事 · v1.5 终检修订</p>
+          <p class="kicker">生存叙事 · v1.6 可玩性修订</p>
           <h1 id="title-heading">额吉</h1>
           <p class="title-subtitle">在苦难的挣扎与忐忑的期盼中<br>找到家的方向。</p>
-          <p class="title-meta">可玩竖切 v1.6 · 探索 / 拾取 / 双行动 / 小游戏</p>
+          <p class="title-meta">可玩竖切 v1.6 · 限时探索 / 拾取 / 双行动 / 小游戏</p>
         </div>
         <nav class="title-menu" aria-label="主菜单">
-          <button id="btn-new-game" class="menu-button menu-button-primary" type="button">开始新游戏</button>
+          <button id="btn-quick-play" class="menu-button menu-button-primary" type="button">立即试玩第一章</button>
+          <button id="btn-new-game" class="menu-button" type="button">完整开始（含序章）</button>
           <button id="btn-continue" class="menu-button" type="button">继续上次</button>
           <button id="btn-archive" class="menu-button" type="button">档案室</button>
           <button id="btn-settings" class="menu-button" type="button">设置</button>
@@ -30,7 +31,7 @@
         </nav>
       </div>
       <footer class="title-footer">
-        <span>键盘：A / D 或 ← / → 移动</span>
+        <span>键盘：A / D 移动 · Shift 快跑</span>
         <span>交互：E / 鼠标左键</span>
         <span>地图：M</span>
         <span>手札：J</span>
@@ -78,6 +79,10 @@
           <canvas id="chapter-canvas" aria-label="慈云庵灰盒场景"></canvas>
           <div class="stage-grade" aria-hidden="true"></div>
           <div id="weather-chip" class="weather-chip">阴，河面起雾</div>
+          <div id="explore-clock" class="explore-clock is-hidden" aria-label="距离天黑的时间">
+            <div class="explore-clock-head"><span>离天黑</span><strong id="explore-clock-text">00:48</strong></div>
+            <div class="progress-track"><span id="explore-clock-bar"></span></div>
+          </div>
           <div id="chapter-caption" class="chapter-caption"></div>
           <div id="chapter-actions" class="chapter-actions"></div>
           <div id="explore-layer" class="explore-layer is-hidden" aria-label="慈云庵探索区域">
@@ -226,10 +231,13 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
 
-  <script src="js/data.js?v=1.6.2"></script>
-  <script src="js/game.js?v=1.6.1"></script>
+  <script src="js/data.js?v=1.6.3"></script>
+  <script src="js/game.js?v=1.6.3"></script>
 </body>
 </html>
+
+
+
 
 
 

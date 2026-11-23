@@ -2781,3 +2781,194 @@ button:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Playability pass: diegetic markers and day timer */
+
+.explore-clock {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  z-index: 7;
+  width: min(230px, 34vw);
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(231, 223, 207, 0.18);
+  background: rgba(11, 12, 10, 0.74);
+  transform: translateX(-50%);
+  backdrop-filter: blur(7px);
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.explore-clock-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.38rem;
+  color: rgba(231, 223, 207, 0.62);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+}
+
+.explore-clock-head strong {
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.explore-clock .progress-track {
+  height: 3px;
+  background: rgba(231, 223, 207, 0.12);
+}
+
+.explore-clock .progress-track > span {
+  width: 100%;
+  background: linear-gradient(90deg, #8a806a, #c09a6e);
+  transition: width 0.18s linear, background 0.3s ease;
+}
+
+.explore-clock.is-danger {
+  border-color: rgba(168, 91, 80, 0.62);
+  background: rgba(41, 18, 15, 0.82);
+}
+
+.explore-clock.is-danger .progress-track > span {
+  background: var(--danger);
+}
+
+.explore-clock.is-danger .explore-clock-head strong {
+  color: #e1a08e;
+}
+
+.explore-hotspot {
+  width: 5rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.explore-hotspot:hover,
+.explore-hotspot.is-near {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: translateX(-50%) translateY(-3px);
+}
+
+.explore-hotspot .hotspot-icon {
+  width: 2.65rem;
+  height: 2.65rem;
+  margin: 0 auto;
+  border-color: rgba(208, 162, 131, 0.5);
+  background: rgba(18, 19, 16, 0.82);
+  box-shadow: 0 0 0 5px rgba(14, 15, 12, 0.24), 0 8px 22px rgba(0, 0, 0, 0.34);
+  color: #d7b08e;
+  font-size: 0.92rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.explore-hotspot .hotspot-icon::after {
+  content: "";
+  position: absolute;
+  width: 3.35rem;
+  height: 3.35rem;
+  border: 1px solid rgba(208, 162, 131, 0.14);
+  border-radius: 50%;
+  animation: hotspot-breathe 2.4s ease-in-out infinite;
+}
+
+.explore-hotspot:hover .hotspot-icon,
+.explore-hotspot.is-near .hotspot-icon {
+  border-color: rgba(224, 166, 117, 0.94);
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 0 0 6px rgba(183, 106, 74, 0.12), 0 0 26px rgba(183, 106, 74, 0.22);
+}
+
+.explore-hotspot strong {
+  display: block;
+  margin-top: 0.42rem;
+  padding: 0.14rem 0.3rem;
+  background: rgba(12, 13, 11, 0.54);
+  color: rgba(231, 223, 207, 0.52);
+  font-size: 0.71rem;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+  text-shadow: 0 1px 5px #000;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.explore-hotspot.is-near strong,
+.explore-hotspot:hover strong {
+  color: #ead9c4;
+  opacity: 1;
+}
+
+.explore-hotspot small {
+  display: none;
+}
+
+@keyframes hotspot-breathe {
+  0%, 100% { transform: scale(0.78); opacity: 0.12; }
+  50% { transform: scale(1.04); opacity: 0.4; }
+}
+
+@media (max-width: 720px) {
+  .explore-clock {
+    top: 3.55rem;
+    left: 0.7rem;
+    width: 9.5rem;
+    padding: 0.45rem 0.55rem;
+    transform: none;
+  }
+
+  .explore-clock-head {
+    margin-bottom: 0.28rem;
+    font-size: 0.58rem;
+  }
+
+  .explore-clock-head strong {
+    font-size: 0.72rem;
+  }
+
+  .explore-hotspot {
+    width: 3.9rem;
+  }
+
+  .explore-hotspot .hotspot-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .explore-hotspot .hotspot-icon::after {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+
+  .explore-hotspot strong {
+    font-size: 0.62rem;
+  }
+}
+
+.explore-hotspot .hotspot-icon {
+  position: relative;
+}
+
+.explore-player {
+  filter: drop-shadow(0 0 12px rgba(216, 180, 140, 0.18));
+}
+
+.explore-player::before {
+  animation: explorer-body-bob 1.05s ease-in-out infinite alternate;
+  transform-origin: 50% 100%;
+}
+
+.explore-player::after {
+  box-shadow: 0 0 0 4px rgba(216, 180, 140, 0.06), 0 0 18px rgba(216, 180, 140, 0.14);
+}
+
+@keyframes explorer-body-bob {
+  from { transform: translateY(0) scaleY(1); }
+  to { transform: translateY(-0.12rem) scaleY(0.985); }
+}

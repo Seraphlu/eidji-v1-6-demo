@@ -36,14 +36,18 @@
   let dreamReturnCallback = null;
   let dreamIsFinal = false;
   let dreamTransitioning = false;
+  let audioContext = null;
   let explore = {
     active: false,
     x: 50,
     targetX: null,
     pendingActionId: null,
-    keys: { left: false, right: false },
+    keys: { left: false, right: false, sprint: false },
     hotspots: [],
     pickups: [],
+    timeLeft: 48,
+    warned: false,
+    forcedDusk: false,
     raf: null,
     lastTimestamp: 0
   };
@@ -60,6 +64,50 @@
     return a + (b - a) * t;
   }
 
+  function ensureAudio() {
+    if (!settings.sound) return null;
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return null;
+    if (!audioContext) audioContext = new AudioCtor();
+    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+    return audioContext;
+  }
+
+  function playTone(frequency, duration, type, volume, delay) {
+    const context = ensureAudio();
+    if (!context) return;
+    const when = context.currentTime + (delay || 0);
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = type || "sine";
+    oscillator.frequency.setValueAtTime(frequency, when);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume || 0.035), when + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(when);
+    oscillator.stop(when + duration + 0.03);
+  }
+
+  function playFeedback(kind) {
+    if (!settings.sound) return;
+    if (kind === "pickup") {
+      playTone(660, 0.09, "sine", 0.025);
+      playTone(990, 0.12, "sine", 0.018, 0.065);
+    } else if (kind === "success") {
+      playTone(392, 0.1, "triangle", 0.025);
+      playTone(587, 0.18, "triangle", 0.02, 0.08);
+    } else if (kind === "fail") {
+      playTone(180, 0.18, "sawtooth", 0.018);
+      playTone(132, 0.24, "sine", 0.02, 0.08);
+    } else if (kind === "warn") {
+      playTone(240, 0.08, "square", 0.014);
+      playTone(210, 0.1, "square", 0.012, 0.12);
+    } else {
+      playTone(320, 0.055, "triangle", 0.012);
+    }
+  }
   function shuffle(array) {
     const copy = array.slice();
     for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -178,9 +226,9 @@
   function loadSettings() {
     try {
       const raw = safeStorageGet(SETTINGS_KEY);
-      return raw ? Object.assign({ gentle: false }, JSON.parse(raw)) : { gentle: false };
+      return raw ? Object.assign({ gentle: false, sound: true }, JSON.parse(raw)) : { gentle: false, sound: true };
     } catch (error) {
-      return { gentle: false };
+      return { gentle: false, sound: true };
     }
   }
 
@@ -505,6 +553,17 @@
       showToast(settings.gentle ? "已开启温柔模式：属性消耗 -30%" : "已关闭温柔模式");
     });
 
+    const soundButton = document.createElement("button");
+    soundButton.type = "button";
+    soundButton.className = "menu-button";
+    soundButton.textContent = "操作音效：" + (settings.sound ? "开" : "关");
+    soundButton.addEventListener("click", () => {
+      settings.sound = !settings.sound;
+      saveSettings();
+      soundButton.textContent = "操作音效：" + (settings.sound ? "开" : "关");
+      if (settings.sound) playFeedback("success");
+    });
+    body.appendChild(soundButton);
     const note = document.createElement("p");
     note.style.margin = "0 0 1rem";
     note.style.color = "var(--ink-faint)";
@@ -915,6 +974,27 @@
     renderPrologue();
   }
 
+  function startQuickPlay() {
+    state = createState();
+    state.prologueAnswers = makeSamplePrologueAnswers();
+    state.prologueIndex = DATA.PROLOGUE_QUESTIONS.length;
+    state.checkpoint = "chapter";
+    state.day = 1;
+    state.phase = "action";
+    state.flags["event-seen-1"] = true;
+    state.flags.quickPlay = true;
+    explore.x = 50;
+    explore.timeLeft = 48;
+    explore.warned = false;
+    explore.forcedDusk = false;
+    explore.pickups = createExplorePickups(1);
+    saveGame();
+    showScreen("chapter-screen");
+    renderChapterUI();
+    ensureChapterLoop();
+    playFeedback("success");
+    showToast("慧明师父把半个窝头塞进你手里。趁天黑前，去两个地方。");
+  }
   function continueGame() {
     const loaded = loadGame();
     if (!loaded) {
@@ -1049,6 +1129,9 @@
     explore.keys.left = false;
     explore.keys.right = false;
     explore.pickups = createExplorePickups(state.day);
+    explore.timeLeft = 48;
+    explore.warned = false;
+    explore.forcedDusk = false;
     unlockArchiveForDay(state.day);
     renderChapterUI();
     ensureChapterLoop();
@@ -1348,7 +1431,10 @@
   function getChapterCaption(event) {
     if (!event) return "";
     if (state.phase === "story") return "";
-    if (state.phase === "action") return "你手里没有多少时间。\n选一件今天最要紧的事。";
+    if (state.phase === "action") {
+      const remaining = Math.max(0, ACTIONS_PER_DAY - state.actionsToday);
+      return "在天黑前，再去 " + remaining + " 个地方。\n带回一点能撑过今晚的东西。";
+    }
     if (state.phase === "dusk") return "黄昏。\n把今天手里有的东西，亲手分出去。";
     if (state.phase === "final") return "雪落在草垛上。\n她连伸手的力气都没有了。";
     return "";
@@ -1484,7 +1570,8 @@
     explore.raf = null;
     if (dom.exploreLayer) dom.exploreLayer.classList.add("is-hidden");
     if (dom.exploreControls) dom.exploreControls.classList.add("is-hidden");
-    if (dom.chapterActions) dom.chapterActions.style.display = "none";
+        if (dom.exploreClock) dom.exploreClock.classList.add("is-hidden");
+if (dom.chapterActions) dom.chapterActions.style.display = "none";
   }
 
   function createExplorePickups(day) {
@@ -1492,7 +1579,7 @@
     const collected = Array.isArray(state.flags.collectedPickups) ? state.flags.collectedPickups : [];
     return [
       { id: "pickup-" + day + "-warmth", kind: "warmth", icon: "柴", label: "一截干柴", x: 22 + shift, bottom: 24 },
-      { id: "pickup-" + day + "-spirit", kind: "spirit", icon: "炭", label: "半截炭笔", x: 51, bottom: 54 },
+      { id: "pickup-" + day + "-spirit", kind: "spirit", icon: "炭", label: "半截炭笔", x: 34, bottom: 54 },
       { id: "pickup-" + day + "-greens", kind: "greens", icon: "叶", label: "一把野菜", x: 77 - shift, bottom: 26 }
     ].filter((pickup) => !collected.includes(pickup.id));
   }
@@ -1514,6 +1601,7 @@
       addFood("greens", 1);
       pushLog("你在路边拾到一把野菜。");
     }
+    playFeedback("pickup");
     if (pickup.element && pickup.element.parentNode) pickup.element.parentNode.removeChild(pickup.element);
     explore.pickups = explore.pickups.filter((item) => item.id !== pickup.id);
     showToast("拾到：" + pickup.label);
@@ -1561,7 +1649,7 @@
     } else if (nearest && nearestDistance <= 9) {
       dom.explorePrompt.textContent = "到了 " + nearest.action.label + "。按 E 或点地点互动。";
     } else {
-      dom.explorePrompt.textContent = "剩余行动 " + Math.max(0, ACTIONS_PER_DAY - state.actionsToday) + " · A / D 移动 · E 互动 · 点一下地点也会走过去";
+      dom.explorePrompt.textContent = "剩余行动 " + Math.max(0, ACTIONS_PER_DAY - state.actionsToday) + " · A / D 移动 · Shift 快跑 · E 互动";
     }
   }
 
@@ -1570,9 +1658,42 @@
     updateExplorePrompt();
   }
 
+  function updateExploreClock() {
+    if (!dom.exploreClock) return;
+    const seconds = Math.max(0, Math.ceil(explore.timeLeft));
+    if (dom.exploreClockText) dom.exploreClockText.textContent = "00:" + String(seconds).padStart(2, "0");
+    if (dom.exploreClockBar) dom.exploreClockBar.style.width = clamp((explore.timeLeft / 48) * 100, 0, 100) + "%";
+    dom.exploreClock.classList.toggle("is-danger", seconds <= 12);
+  }
+
+  function forceExploreDusk() {
+    if (!state || state.phase !== "action" || explore.forcedDusk) return;
+    explore.forcedDusk = true;
+    state.phase = "dusk";
+    stopExplore();
+    applyStats({ warmth: -8, health: -3, spirit: -4 });
+    pushLog("天突然黑下来，你摸黑回到庵里，手脚已经冻僵。");
+    playFeedback("fail");
+    renderChapterUI();
+    saveGame();
+    openModal({
+      eyebrow: "天色已暗",
+      title: "风从门缝里钻进来",
+      body: "你在外面待得太久。回到慈云庵时，屋檐下已经看不见路。\n\n今天没有做的事，只能留给明天；但今晚的饥饿不会等。",
+      actions: [{
+        label: "回到庵里",
+        primary: true,
+        onClick: () => {
+          closeModal();
+          openDusk();
+        }
+      }]
+    });
+  }
   function triggerExploreAction(actionId) {
     const action = DATA.ACTION_LIBRARY[actionId];
     if (!action || !state || state.phase !== "action") return;
+    stopExplore();
     explore.pendingActionId = null;
     explore.targetX = null;
     explore.keys.left = false;
@@ -1590,13 +1711,26 @@
       }
       const dt = Math.min(0.05, Math.max(0.01, (timestamp - explore.lastTimestamp) / 1000));
       explore.lastTimestamp = timestamp;
-      let direction = 0;
+      const modalOpen = dom.modalLayer && !dom.modalLayer.classList.contains("is-hidden");
+      if (!paused && !modalOpen && state && state.phase === "action") {
+        explore.timeLeft -= dt;
+        updateExploreClock();
+        if (explore.timeLeft <= 12 && !explore.warned) {
+          explore.warned = true;
+          playFeedback("warn");
+          showToast("风起来了。天快黑了，回庵前再拿一样东西。");
+        }
+        if (explore.timeLeft <= 0) {
+          forceExploreDusk();
+          return;
+        }
+      }      let direction = 0;
       if (explore.keys.left) direction -= 1;
       if (explore.keys.right) direction += 1;
       if (direction) {
         explore.targetX = null;
         explore.pendingActionId = null;
-        explore.x = clamp(explore.x + direction * 28 * dt, 5, 95);
+        explore.x = clamp(explore.x + direction * (explore.keys.sprint ? 46 : 28) * dt, 5, 95);
       } else if (explore.targetX !== null) {
         const difference = explore.targetX - explore.x;
         if (Math.abs(difference) <= 0.7) {
@@ -1607,7 +1741,7 @@
           updateExplorePlayer();
           if (pending) setTimeout(() => triggerExploreAction(pending), 120);
         } else {
-          explore.x += Math.sign(difference) * Math.min(Math.abs(difference), 38 * dt);
+          explore.x += Math.sign(difference) * Math.min(Math.abs(difference), (explore.keys.sprint ? 54 : 38) * dt);
         }
       }
       updateExplorePlayer();
@@ -1654,7 +1788,9 @@
     dom.chapterHint.textContent = "";
     dom.exploreLayer.classList.remove("is-hidden");
     if (dom.exploreControls) dom.exploreControls.classList.remove("is-hidden");
-    dom.exploreHotspots.innerHTML = "";
+        if (dom.exploreClock) dom.exploreClock.classList.remove("is-hidden");
+    updateExploreClock();
+dom.exploreHotspots.innerHTML = "";
     explore.hotspots = [];
     const positions = [
       { x: 17, bottom: 32 },
@@ -1675,10 +1811,11 @@
       const icon = document.createElement("span");
       icon.className = "hotspot-icon";
       icon.textContent = action.icon;
-      const label = document.createElement("strong");
-      label.textContent = action.label;
+      const location = DATA.MAP_LOCATIONS.find((item) => item.id === action.locationId);
+const label = document.createElement("strong");
+      label.textContent = location ? location.name : action.label;
       const description = document.createElement("small");
-      description.textContent = action.description;
+      description.textContent = action.short;
       button.appendChild(icon);
       button.appendChild(label);
       button.appendChild(description);
@@ -1686,6 +1823,7 @@
       explore.hotspots.push(hotspot);
       button.addEventListener("click", (event) => {
         event.stopPropagation();
+        playFeedback("click");
         moveExploreTo(hotspot);
       });
       dom.exploreHotspots.appendChild(button);
@@ -2049,6 +2187,7 @@
     state.usedActionsToday.push(action.id);
 
     grantActionRewards(action, success);
+    playFeedback(success ? "success" : "fail");
 
     if (action.id === "help") {
       applyStats({ warmth: 5 });
@@ -3474,6 +3613,7 @@
     dom.eidjiScreen = $("#eidji-screen");
     dom.endingScreen = $("#ending-screen");
     dom.fadeOverlay = $("#fade-overlay");
+    dom.btnQuickPlay = $("#btn-quick-play");
     dom.btnNewGame = $("#btn-new-game");
     dom.btnContinue = $("#btn-continue");
     dom.btnArchive = $("#btn-archive");
@@ -3491,6 +3631,9 @@
     dom.phaseLabel = $("#phase-label");
     dom.statsBar = $("#stats-bar");
     dom.weatherChip = $("#weather-chip");
+    dom.exploreClock = $("#explore-clock");
+    dom.exploreClockText = $("#explore-clock-text");
+    dom.exploreClockBar = $("#explore-clock-bar");
     dom.chapterCaption = $("#chapter-caption");
     dom.chapterActions = $("#chapter-actions");
     dom.exploreLayer = $("#explore-layer");
@@ -3550,6 +3693,7 @@
   }
 
   function bindEvents() {
+    dom.btnQuickPlay.addEventListener("click", startQuickPlay);
     dom.btnNewGame.addEventListener("click", startNewGame);
     dom.btnContinue.addEventListener("click", continueGame);
     dom.btnArchive.addEventListener("click", openArchive);
@@ -3616,7 +3760,11 @@
             explore.keys.right = true;
             return;
           }
-          if (key === "e" || key === " " || key === "enter") {
+          if (key === "shift") {
+            event.preventDefault();
+            explore.keys.sprint = true;
+            return;
+          }          if (key === "e" || key === " " || key === "enter") {
             event.preventDefault();
             interactExplore();
             return;
@@ -3646,11 +3794,13 @@
       const key = event.key.toLowerCase();
       if (key === "a" || key === "arrowleft") explore.keys.left = false;
       if (key === "d" || key === "arrowright") explore.keys.right = false;
+      if (key === "shift") explore.keys.sprint = false;
     });
 
     window.addEventListener("blur", () => {
       explore.keys.left = false;
       explore.keys.right = false;
+      explore.keys.sprint = false;
     });
 
     window.addEventListener("resize", () => {
@@ -3740,6 +3890,8 @@
     debugRoute();
     window.__EIDJI_DEMO__ = {
       getState: () => state,
+      getExplore: () => explore,
+      startQuickPlay,
       startNewGame,
       startChapter: enterChapter,
       showEidji,
@@ -3762,6 +3914,30 @@
     init();
   }
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
