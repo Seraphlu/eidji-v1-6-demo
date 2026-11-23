@@ -8,6 +8,23 @@
   const DEBUG_FAST = new URLSearchParams(location.search).get("fast") === "1";
   const SKILL_XP_PER_LEVEL = 100;
   const ACTIONS_PER_DAY = 2;
+  const EXPLORE_DAY_SECONDS = 60;
+  const EXPLORE_WORLD_WIDTH = 3900;
+  const EXPLORE_START_X = 900;
+  const EXPLORE_LOCATION_LAYOUT = {
+    canteen: { x: 260, bottom: 27 },
+    hall: { x: 760, bottom: 35 },
+    dorm: { x: 1120, bottom: 27 },
+    field: { x: 1520, bottom: 22 },
+    river: { x: 1960, bottom: 19 },
+    iceRiver: { x: 2070, bottom: 19 },
+    elm: { x: 2300, bottom: 30 },
+    supply: { x: 2570, bottom: 25 },
+    town: { x: 2760, bottom: 26 },
+    market: { x: 3050, bottom: 25 },
+    hill: { x: 3370, bottom: 31 },
+    grassStack: { x: 3620, bottom: 20 }
+  };
   const ACHIEVEMENT_NAMES = {
     honest: "诚实的答卷",
     "next-light": "第 n 束光",
@@ -39,15 +56,17 @@
   let audioContext = null;
   let explore = {
     active: false,
-    x: 50,
+    x: EXPLORE_START_X,
     targetX: null,
     pendingActionId: null,
     keys: { left: false, right: false, sprint: false },
     hotspots: [],
     pickups: [],
-    timeLeft: 48,
+    timeLeft: EXPLORE_DAY_SECONDS,
     warned: false,
     forcedDusk: false,
+    cameraX: 0,
+    viewWidth: 0,
     raf: null,
     lastTimestamp: 0
   };
@@ -983,8 +1002,8 @@
     state.phase = "action";
     state.flags["event-seen-1"] = true;
     state.flags.quickPlay = true;
-    explore.x = 50;
-    explore.timeLeft = 48;
+    explore.x = EXPLORE_START_X;
+    explore.timeLeft = EXPLORE_DAY_SECONDS;
     explore.warned = false;
     explore.forcedDusk = false;
     explore.pickups = createExplorePickups(1);
@@ -1123,13 +1142,13 @@
     state.flags["resolved-day-" + state.day] = false;
     state.actionsToday = 0;
     state.usedActionsToday = [];
-    explore.x = 50;
+    explore.x = EXPLORE_START_X;
     explore.targetX = null;
     explore.pendingActionId = null;
     explore.keys.left = false;
     explore.keys.right = false;
     explore.pickups = createExplorePickups(state.day);
-    explore.timeLeft = 48;
+    explore.timeLeft = EXPLORE_DAY_SECONDS;
     explore.warned = false;
     explore.forcedDusk = false;
     unlockArchiveForDay(state.day);
@@ -1571,6 +1590,7 @@
     if (dom.exploreLayer) dom.exploreLayer.classList.add("is-hidden");
     if (dom.exploreControls) dom.exploreControls.classList.add("is-hidden");
         if (dom.exploreClock) dom.exploreClock.classList.add("is-hidden");
+    if (dom.exploreMinimap) dom.exploreMinimap.classList.add("is-hidden");
 if (dom.chapterActions) dom.chapterActions.style.display = "none";
   }
 
@@ -1578,9 +1598,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     const shift = (day * 7) % 13;
     const collected = Array.isArray(state.flags.collectedPickups) ? state.flags.collectedPickups : [];
     return [
-      { id: "pickup-" + day + "-warmth", kind: "warmth", icon: "柴", label: "一截干柴", x: 22 + shift, bottom: 24 },
-      { id: "pickup-" + day + "-spirit", kind: "spirit", icon: "炭", label: "半截炭笔", x: 34, bottom: 54 },
-      { id: "pickup-" + day + "-greens", kind: "greens", icon: "叶", label: "一把野菜", x: 77 - shift, bottom: 26 }
+      { id: "pickup-" + day + "-warmth", kind: "warmth", icon: "柴", label: "一截干柴", x: 420 + shift * 12, bottom: 24 },
+      { id: "pickup-" + day + "-spirit", kind: "spirit", icon: "炭", label: "半截炭笔", x: 1280 + shift * 5, bottom: 54 },
+      { id: "pickup-" + day + "-greens", kind: "greens", icon: "叶", label: "一把野菜", x: 2180 - shift * 9, bottom: 26 }
     ].filter((pickup) => !collected.includes(pickup.id));
   }
 
@@ -1613,7 +1633,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
 
   function collectNearbyPickups() {
     explore.pickups.slice().forEach((pickup) => {
-      if (Math.abs(explore.x - pickup.x) <= 3.2) collectPickup(pickup);
+      if (Math.abs(explore.x - pickup.x) <= 58) collectPickup(pickup);
     });
   }
 
@@ -1623,7 +1643,6 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     explore.pickups.forEach((pickup) => {
       const token = document.createElement("span");
       token.className = "explore-pickup";
-      token.style.left = pickup.x + "%";
       token.style.bottom = pickup.bottom + "%";
       token.innerHTML = "<strong>" + pickup.icon + "</strong><small>" + pickup.label + "</small>";
       pickup.element = token;
@@ -1631,38 +1650,119 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     });
   }
 
+  function getExploreLayout(locationId) {
+    return EXPLORE_LOCATION_LAYOUT[locationId] || { x: EXPLORE_WORLD_WIDTH / 2, bottom: 25 };
+  }
+
+  function getExploreCameraTarget() {
+    const viewWidth = dom.exploreLayer ? dom.exploreLayer.clientWidth : window.innerWidth;
+    const maxCamera = Math.max(0, EXPLORE_WORLD_WIDTH - viewWidth);
+    return clamp(explore.x - viewWidth / 2, 0, maxCamera);
+  }
+
+  function updateExploreCamera(dt, snap) {
+    const viewWidth = Math.max(1, dom.exploreLayer ? dom.exploreLayer.clientWidth : window.innerWidth);
+    explore.viewWidth = viewWidth;
+    const target = getExploreCameraTarget();
+    const amount = snap ? 1 : 1 - Math.pow(0.0025, Math.max(0.001, dt || 0.016));
+    explore.cameraX = lerp(explore.cameraX, target, amount);
+    updateExploreWorldPositions();
+  }
+
+  function updateExploreWorldPositions() {
+    const viewWidth = explore.viewWidth || (dom.exploreLayer ? dom.exploreLayer.clientWidth : window.innerWidth);
+    if (dom.explorePlayer) dom.explorePlayer.style.left = (explore.x - explore.cameraX) + "px";
+    explore.hotspots.forEach((hotspot) => {
+      const screenX = hotspot.worldX - explore.cameraX;
+      hotspot.element.style.left = screenX + "px";
+      const visible = screenX > -90 && screenX < viewWidth + 90;
+      hotspot.element.classList.toggle("is-offscreen", !visible);
+    });
+    explore.pickups.forEach((pickup) => {
+      if (!pickup.element) return;
+      const screenX = pickup.x - explore.cameraX;
+      pickup.element.style.left = screenX + "px";
+      pickup.element.classList.toggle("is-offscreen", screenX < -70 || screenX > viewWidth + 70);
+    });
+    updateExploreMinimapPlayer();
+  }
+
+  function updateExploreMinimapPlayer() {
+    if (!explore.minimapPlayerElement) return;
+    explore.minimapPlayerElement.style.left = clamp((explore.x / EXPLORE_WORLD_WIDTH) * 100, 0, 100) + "%";
+  }
+
+  function renderExploreMinimap() {
+    if (!dom.exploreMinimapTrack) return;
+    dom.exploreMinimapTrack.innerHTML = "";
+    const seen = new Set();
+    explore.hotspots.forEach((hotspot) => {
+      const locationId = hotspot.action.locationId || "unknown";
+      if (seen.has(locationId)) return;
+      seen.add(locationId);
+      const location = getLocation(locationId);
+      const marker = document.createElement("span");
+      marker.className = "minimap-location is-current-action";
+      marker.style.left = clamp((hotspot.worldX / EXPLORE_WORLD_WIDTH) * 100, 0, 100) + "%";
+      marker.title = location ? location.name : hotspot.action.label;
+      dom.exploreMinimapTrack.appendChild(marker);
+    });
+    const player = document.createElement("span");
+    player.className = "minimap-player";
+    dom.exploreMinimapTrack.appendChild(player);
+    explore.minimapPlayerElement = player;
+    if (dom.exploreMinimapText) dom.exploreMinimapText.textContent = "慈云庵";
+    updateExploreMinimapPlayer();
+  }
+
   function updateExplorePrompt() {
     if (!explore.active || !dom.explorePrompt) return;
     let nearest = null;
     let nearestDistance = Infinity;
     explore.hotspots.forEach((hotspot) => {
-      const distance = Math.abs(explore.x - hotspot.x);
-      hotspot.element.classList.toggle("is-near", distance <= 9);
+      const distance = Math.abs(explore.x - hotspot.worldX);
+      hotspot.element.classList.toggle("is-near", distance <= 115);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearest = hotspot;
       }
     });
+
     if (explore.targetX !== null && explore.pendingActionId) {
       const target = explore.hotspots.find((hotspot) => hotspot.action.id === explore.pendingActionId);
-      dom.explorePrompt.textContent = target ? "正在走向：" + target.action.label : "正在走过去……";
-    } else if (nearest && nearestDistance <= 9) {
-      dom.explorePrompt.textContent = "到了 " + nearest.action.label + "。按 E 或点地点互动。";
+      const distance = target ? Math.max(0, Math.round(Math.abs(target.worldX - explore.x))) : 0;
+      dom.explorePrompt.textContent = target
+        ? "正在跑向 " + target.action.label + " · 还有 " + distance + " 步"
+        : "正在跑过去……";
+    } else if (nearest && nearestDistance <= 115) {
+      const location = getLocation(nearest.action.locationId);
+      dom.explorePrompt.textContent = "到了 " + (location ? location.name : nearest.action.label) + "。按 E 或点地点互动。";
+      if (dom.exploreMinimapText && location) dom.exploreMinimapText.textContent = location.name;
+    } else if (nearest) {
+      const location = getLocation(nearest.action.locationId);
+      const direction = nearest.worldX >= explore.x ? "→" : "←";
+      dom.explorePrompt.textContent = (location ? location.name : nearest.action.label) + " " + direction + " " + Math.round(nearestDistance) + " 步 · A / D 跑动 · Shift 加速";
+      if (dom.exploreMinimapText && location) dom.exploreMinimapText.textContent = location.name + " " + direction;
     } else {
-      dom.explorePrompt.textContent = "剩余行动 " + Math.max(0, ACTIONS_PER_DAY - state.actionsToday) + " · A / D 移动 · Shift 快跑 · E 互动";
+      dom.explorePrompt.textContent = "A / D 跑动 · Shift 加速 · E 互动";
     }
   }
 
   function updateExplorePlayer() {
-    if (dom.explorePlayer) dom.explorePlayer.style.left = explore.x + "%";
+    updateExploreWorldPositions();
     updateExplorePrompt();
+  }
+
+  function formatCountdown(seconds) {
+    const safe = Math.max(0, Math.ceil(seconds));
+    return String(Math.floor(safe / 60)).padStart(2, "0") + ":" + String(safe % 60).padStart(2, "0");
   }
 
   function updateExploreClock() {
     if (!dom.exploreClock) return;
     const seconds = Math.max(0, Math.ceil(explore.timeLeft));
-    if (dom.exploreClockText) dom.exploreClockText.textContent = "00:" + String(seconds).padStart(2, "0");
-    if (dom.exploreClockBar) dom.exploreClockBar.style.width = clamp((explore.timeLeft / 48) * 100, 0, 100) + "%";
+    if (dom.exploreClockText) dom.exploreClockText.textContent = formatCountdown(seconds);
+    if (dom.exploreClockBar) dom.exploreClockBar.style.width = clamp((explore.timeLeft / EXPLORE_DAY_SECONDS) * 100, 0, 100) + "%";
     dom.exploreClock.classList.toggle("is-danger", seconds <= 12);
   }
 
@@ -1712,7 +1812,31 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
       const dt = Math.min(0.05, Math.max(0.01, (timestamp - explore.lastTimestamp) / 1000));
       explore.lastTimestamp = timestamp;
       const modalOpen = dom.modalLayer && !dom.modalLayer.classList.contains("is-hidden");
-      if (!paused && !modalOpen && state && state.phase === "action") {
+      const canMove = !paused && !modalOpen && state && state.phase === "action";
+
+      if (canMove) {
+        let direction = 0;
+        if (explore.keys.left) direction -= 1;
+        if (explore.keys.right) direction += 1;
+        if (direction) {
+          explore.targetX = null;
+          explore.pendingActionId = null;
+          const speed = explore.keys.sprint ? 420 : 220;
+          explore.x = clamp(explore.x + direction * speed * dt, 60, EXPLORE_WORLD_WIDTH - 60);
+        } else if (explore.targetX !== null) {
+          const difference = explore.targetX - explore.x;
+          if (Math.abs(difference) <= 5) {
+            explore.x = explore.targetX;
+            const pending = explore.pendingActionId;
+            explore.targetX = null;
+            explore.pendingActionId = null;
+            if (pending) setTimeout(() => triggerExploreAction(pending), 120);
+          } else {
+            const speed = explore.keys.sprint ? 520 : 300;
+            explore.x = clamp(explore.x + Math.sign(difference) * Math.min(Math.abs(difference), speed * dt), 60, EXPLORE_WORLD_WIDTH - 60);
+          }
+        }
+
         explore.timeLeft -= dt;
         updateExploreClock();
         if (explore.timeLeft <= 12 && !explore.warned) {
@@ -1724,26 +1848,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
           forceExploreDusk();
           return;
         }
-      }      let direction = 0;
-      if (explore.keys.left) direction -= 1;
-      if (explore.keys.right) direction += 1;
-      if (direction) {
-        explore.targetX = null;
-        explore.pendingActionId = null;
-        explore.x = clamp(explore.x + direction * (explore.keys.sprint ? 46 : 28) * dt, 5, 95);
-      } else if (explore.targetX !== null) {
-        const difference = explore.targetX - explore.x;
-        if (Math.abs(difference) <= 0.7) {
-          explore.x = explore.targetX;
-          const pending = explore.pendingActionId;
-          explore.targetX = null;
-          explore.pendingActionId = null;
-          updateExplorePlayer();
-          if (pending) setTimeout(() => triggerExploreAction(pending), 120);
-        } else {
-          explore.x += Math.sign(difference) * Math.min(Math.abs(difference), (explore.keys.sprint ? 54 : 38) * dt);
-        }
       }
+
+      updateExploreCamera(dt, false);
       updateExplorePlayer();
       collectNearbyPickups();
       explore.raf = requestAnimationFrame(step);
@@ -1754,11 +1861,11 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
   function moveExploreTo(hotspot) {
     if (!explore.active) return;
     if (!hotspot || !hotspot.action) return;
-    if (Math.abs(explore.x - hotspot.x) <= 6) {
+    if (Math.abs(explore.x - hotspot.worldX) <= 120) {
       triggerExploreAction(hotspot.action.id);
       return;
     }
-    explore.targetX = hotspot.x;
+    explore.targetX = hotspot.worldX;
     explore.pendingActionId = hotspot.action.id;
     updateExplorePrompt();
   }
@@ -1768,19 +1875,18 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     let nearest = null;
     let nearestDistance = Infinity;
     explore.hotspots.forEach((hotspot) => {
-      const distance = Math.abs(explore.x - hotspot.x);
+      const distance = Math.abs(explore.x - hotspot.worldX);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearest = hotspot;
       }
     });
-    if (nearest && nearestDistance <= 9) {
+    if (nearest && nearestDistance <= 120) {
       triggerExploreAction(nearest.action.id);
     } else {
-      showToast("再走近一点，才能看清那里有什么。");
+      showToast("再跑近一点，才能看清那里有什么。");
     }
   }
-
   function renderExplore(actionIds) {
     if (!dom.exploreLayer || !dom.exploreHotspots) return;
     dom.chapterActions.innerHTML = "";
@@ -1788,38 +1894,49 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     dom.chapterHint.textContent = "";
     dom.exploreLayer.classList.remove("is-hidden");
     if (dom.exploreControls) dom.exploreControls.classList.remove("is-hidden");
-        if (dom.exploreClock) dom.exploreClock.classList.remove("is-hidden");
+    if (dom.exploreClock) dom.exploreClock.classList.remove("is-hidden");
+    if (dom.exploreMinimap) dom.exploreMinimap.classList.remove("is-hidden");
     updateExploreClock();
-dom.exploreHotspots.innerHTML = "";
+    dom.exploreHotspots.innerHTML = "";
     explore.hotspots = [];
-    const positions = [
-      { x: 17, bottom: 32 },
-      { x: 39, bottom: 47 },
-      { x: 62, bottom: 33 },
-      { x: 83, bottom: 45 }
-    ];
-    actionIds.forEach((id, index) => {
-      const action = DATA.ACTION_LIBRARY[id];
-      if (!action) return;
-      const position = positions[index % positions.length];
+
+    const actions = actionIds.map((id) => DATA.ACTION_LIBRARY[id]).filter(Boolean);
+    const counts = {};
+    actions.forEach((action) => {
+      const locationId = action.locationId || "hall";
+      counts[locationId] = (counts[locationId] || 0) + 1;
+    });
+    const used = {};
+
+    actions.forEach((action) => {
+      const locationId = action.locationId || "hall";
+      const layout = getExploreLayout(locationId);
+      const indexAtLocation = used[locationId] || 0;
+      used[locationId] = indexAtLocation + 1;
+      const offset = (indexAtLocation - ((counts[locationId] || 1) - 1) / 2) * 118;
+      const worldX = clamp(layout.x + offset, 70, EXPLORE_WORLD_WIDTH - 70);
+      const location = getLocation(locationId);
+
       const button = document.createElement("button");
       button.type = "button";
       button.className = "explore-hotspot";
-      button.style.left = position.x + "%";
-      button.style.bottom = position.bottom + "%";
+      button.dataset.actionId = action.id;
+      button.dataset.locationId = locationId;
+      button.style.bottom = layout.bottom + "%";
       button.setAttribute("aria-label", action.label + "：" + action.description);
+
       const icon = document.createElement("span");
       icon.className = "hotspot-icon";
       icon.textContent = action.icon;
-      const location = DATA.MAP_LOCATIONS.find((item) => item.id === action.locationId);
-const label = document.createElement("strong");
+      const label = document.createElement("strong");
       label.textContent = location ? location.name : action.label;
       const description = document.createElement("small");
       description.textContent = action.short;
       button.appendChild(icon);
       button.appendChild(label);
       button.appendChild(description);
-      const hotspot = { action, x: position.x, element: button };
+
+      const hotspot = { action, worldX, locationId, element: button };
       explore.hotspots.push(hotspot);
       button.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -1828,13 +1945,16 @@ const label = document.createElement("strong");
       });
       dom.exploreHotspots.appendChild(button);
     });
+
     explore.active = true;
+    explore.viewWidth = dom.exploreLayer.clientWidth || window.innerWidth;
+    explore.cameraX = getExploreCameraTarget();
     renderExplorePickups();
+    renderExploreMinimap();
     updateExplorePlayer();
     collectNearbyPickups();
     startExploreLoop();
   }
-
   function renderActions() {
     dom.chapterActions.innerHTML = "";
     dom.btnPause.style.visibility = state.phase === "final" ? "hidden" : "visible";
@@ -2224,7 +2344,6 @@ const label = document.createElement("strong");
     closeModal();
     if (state.actionsToday < ACTIONS_PER_DAY) {
       state.phase = "action";
-      explore.x = 50;
       explore.targetX = null;
       explore.pendingActionId = null;
       renderChapterUI();
@@ -2682,14 +2801,14 @@ const label = document.createElement("strong");
 
     ctx.clearRect(0, 0, width, height);
 
-    const artKey = state.day >= 16 ? "chapter1Winter" : "chapter1Background";
-    const artDrawn = drawCover(ctx, artImages[artKey], 0, 0, width, height);
-    if (!artDrawn) {
-      drawChapterPlaceholder(ctx, width, height, weather, t);
-    }
-
-    if (state.phase !== "story") {
-      drawChapterFigures(ctx, width, height, t);
+    const exploring = state.phase === "action" && explore.active;
+    if (exploring) {
+      drawExploreWorldScene(ctx, width, height, weather, t);
+    } else {
+      const artKey = state.day >= 16 ? "chapter1Winter" : "chapter1Background";
+      const artDrawn = drawCover(ctx, artImages[artKey], 0, 0, width, height);
+      if (!artDrawn) drawChapterPlaceholder(ctx, width, height, weather, t);
+      if (state.phase !== "story") drawChapterFigures(ctx, width, height, t);
     }
 
     if (weather.includes("雪") || weather.includes("霜")) {
@@ -2708,7 +2827,7 @@ const label = document.createElement("strong");
     ctx.save();
     ctx.font = "11px 'Microsoft YaHei', sans-serif";
     ctx.fillStyle = "rgba(231,223,207,0.28)";
-    ctx.fillText("灰盒场景 · 美术素材待接入", 18, height - 18);
+    ctx.fillText(exploring ? "横向地图 · 镜头跟随 · 美术素材待接入" : "灰盒场景 · 美术素材待接入", 18, height - 18);
     ctx.restore();
   }
 
@@ -2757,6 +2876,249 @@ const label = document.createElement("strong");
     ctx.restore();
   }
 
+
+  function drawExploreWorldScene(ctx, width, height, weather, t) {
+    const cameraX = explore.cameraX || 0;
+    const cold = state.day >= 16 || weather.includes("雪");
+    const horizon = height * 0.63;
+    const baseY = height * 0.80;
+
+    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+    if (cold) {
+      sky.addColorStop(0, "#3c4443");
+      sky.addColorStop(0.62, "#69706c");
+      sky.addColorStop(1, "#a09a8b");
+    } else {
+      sky.addColorStop(0, "#2d3430");
+      sky.addColorStop(0.58, "#59605a");
+      sky.addColorStop(1, "#89806d");
+    }
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    const haze = ctx.createRadialGradient(width * 0.56, height * 0.24, 8, width * 0.56, height * 0.24, width * 0.65);
+    haze.addColorStop(0, "rgba(224,216,199,0.2)");
+    haze.addColorStop(1, "rgba(224,216,199,0)");
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, 0, width, height);
+
+    const parallax = cameraX * 0.18;
+    ctx.save();
+    ctx.fillStyle = cold ? "rgba(64,70,68,0.5)" : "rgba(53,61,55,0.44)";
+    for (let i = -1; i < 7; i += 1) {
+      const offset = (i * 430 - (parallax % 430));
+      ctx.beginPath();
+      ctx.moveTo(offset, horizon);
+      ctx.lineTo(offset + 145, horizon - 78);
+      ctx.lineTo(offset + 265, horizon - 28);
+      ctx.lineTo(offset + 400, horizon - 92);
+      ctx.lineTo(offset + 535, horizon);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.fillStyle = cold ? "#d9d3c5" : "#535248";
+    ctx.fillRect(0, horizon, width, height - horizon);
+    const pathGradient = ctx.createLinearGradient(0, horizon + 45, 0, height);
+    pathGradient.addColorStop(0, cold ? "rgba(198,193,180,0.28)" : "rgba(164,151,123,0.18)");
+    pathGradient.addColorStop(1, cold ? "rgba(128,125,116,0.34)" : "rgba(93,82,65,0.32)");
+    ctx.fillStyle = pathGradient;
+    ctx.beginPath();
+    ctx.moveTo(0, horizon + 82);
+    ctx.bezierCurveTo(width * 0.28, horizon + 55, width * 0.64, horizon + 108, width, horizon + 68);
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.save();
+    ctx.strokeStyle = cold ? "rgba(244,239,229,0.22)" : "rgba(231,223,207,0.12)";
+    ctx.lineWidth = 1;
+    for (let worldX = Math.floor(cameraX / 150) * 150 - 150; worldX < cameraX + width + 150; worldX += 150) {
+      const screenX = worldX - cameraX;
+      ctx.beginPath();
+      ctx.moveTo(screenX, horizon + 95);
+      ctx.lineTo(screenX + 4, height);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    DATA.MAP_LOCATIONS.forEach((location) => {
+      const layout = getExploreLayout(location.id);
+      const screenX = layout.x - cameraX;
+      if (screenX < -260 || screenX > width + 260) return;
+      drawExploreWorldLandmark(ctx, location, screenX, baseY, cold, t);
+    });
+
+    ctx.save();
+    ctx.fillStyle = "rgba(20,22,19,0.2)";
+    ctx.fillRect(0, baseY - 2, width, 4);
+    ctx.restore();
+  }
+
+  function drawExploreWorldLandmark(ctx, location, x, baseY, cold, t) {
+    const scale = 1;
+    ctx.save();
+    ctx.translate(x, baseY);
+    ctx.scale(scale, scale);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(231,223,207,0.16)";
+    ctx.fillStyle = cold ? "#383c39" : "#373a34";
+
+    if (location.id === "canteen") {
+      ctx.fillRect(-72, -72, 144, 72);
+      ctx.fillStyle = cold ? "#303431" : "#2e312d";
+      ctx.beginPath();
+      ctx.moveTo(-88, -72);
+      ctx.lineTo(-52, -104);
+      ctx.lineTo(52, -104);
+      ctx.lineTo(88, -72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "rgba(13,14,12,0.7)";
+      ctx.fillRect(-16, -48, 32, 48);
+      ctx.fillStyle = "rgba(205,166,109,0.22)";
+      ctx.fillRect(28, -55, 18, 17);
+      ctx.strokeStyle = "rgba(229,224,211,0.14)";
+      ctx.beginPath();
+      ctx.moveTo(48, -103);
+      ctx.lineTo(48, -132);
+      ctx.stroke();
+      for (let i = 0; i < 3; i += 1) {
+        ctx.beginPath();
+        ctx.arc(48 + Math.sin(t * 0.8 + i) * 5, -140 - i * 12, 7 + i * 2, Math.PI, Math.PI * 1.8);
+        ctx.stroke();
+      }
+    } else if (location.id === "hall") {
+      ctx.fillRect(-118, -84, 236, 84);
+      ctx.fillStyle = cold ? "#2f3330" : "#30322e";
+      ctx.beginPath();
+      ctx.moveTo(-160, -84);
+      ctx.lineTo(-92, -132);
+      ctx.lineTo(92, -132);
+      ctx.lineTo(160, -84);
+      ctx.lineTo(128, -94);
+      ctx.lineTo(-128, -94);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "rgba(12,13,11,0.74)";
+      ctx.fillRect(-70, -88, 38, 88);
+      ctx.fillRect(32, -88, 38, 88);
+      ctx.fillStyle = "rgba(204,166,109,0.22)";
+      ctx.fillRect(-10, -58, 20, 30);
+    } else if (location.id === "dorm") {
+      ctx.fillRect(-98, -58, 196, 58);
+      ctx.beginPath();
+      ctx.moveTo(-112, -58);
+      ctx.lineTo(-74, -82);
+      ctx.lineTo(74, -82);
+      ctx.lineTo(112, -58);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "rgba(13,14,12,0.64)";
+      ctx.fillRect(-78, -34, 27, 34);
+      ctx.fillRect(28, -34, 27, 34);
+    } else if (location.id === "field") {
+      ctx.fillStyle = cold ? "rgba(207,204,191,0.28)" : "rgba(94,105,77,0.52)";
+      for (let row = 0; row < 4; row += 1) {
+        for (let col = 0; col < 8; col += 1) {
+          const fx = -112 + col * 30 + (row % 2) * 8;
+          const fy = -4 - row * 4;
+          ctx.beginPath();
+          ctx.moveTo(fx, fy);
+          ctx.lineTo(fx - 6, fy - 16 - (col % 3) * 4);
+          ctx.lineTo(fx + 1, fy - 10);
+          ctx.lineTo(fx + 7, fy - 18);
+          ctx.strokeStyle = cold ? "rgba(223,219,205,0.22)" : "rgba(148,161,119,0.42)";
+          ctx.stroke();
+        }
+      }
+    } else if (location.id === "river" || location.id === "iceRiver") {
+      ctx.fillStyle = cold ? "rgba(173,200,204,0.13)" : "rgba(81,108,111,0.32)";
+      ctx.beginPath();
+      ctx.ellipse(0, -6, 146, 23, -0.04, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = cold ? "rgba(231,240,237,0.28)" : "rgba(177,202,200,0.22)";
+      for (let i = 0; i < 5; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(-92 + i * 43, -8 + Math.sin(t + i) * 2);
+        ctx.lineTo(-62 + i * 43, -12 + Math.cos(t + i) * 2);
+        ctx.stroke();
+      }
+    } else if (location.id === "elm") {
+      ctx.fillStyle = cold ? "#34362f" : "#3b382e";
+      ctx.fillRect(-11, -132, 22, 132);
+      ctx.strokeStyle = cold ? "#34362f" : "#3b382e";
+      ctx.lineWidth = 9;
+      ctx.beginPath();
+      ctx.moveTo(0, -104);
+      ctx.lineTo(-42, -145);
+      ctx.moveTo(0, -116);
+      ctx.lineTo(37, -154);
+      ctx.moveTo(-30, -135);
+      ctx.lineTo(-58, -161);
+      ctx.moveTo(27, -143);
+      ctx.lineTo(50, -174);
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(231,223,207,0.12)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, -158, 69, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (location.id === "grassStack") {
+      ctx.fillStyle = cold ? "rgba(194,182,156,0.3)" : "rgba(148,126,83,0.55)";
+      for (let i = 0; i < 3; i += 1) {
+        const hx = -70 + i * 70;
+        ctx.beginPath();
+        ctx.moveTo(hx - 27, 0);
+        ctx.lineTo(hx - 16, -58);
+        ctx.lineTo(hx + 16, -58);
+        ctx.lineTo(hx + 27, 0);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (location.id === "hill") {
+      ctx.fillStyle = cold ? "rgba(98,104,101,0.45)" : "rgba(74,83,70,0.46)";
+      ctx.beginPath();
+      ctx.moveTo(-150, 0);
+      ctx.lineTo(-62, -82);
+      ctx.lineTo(2, -104);
+      ctx.lineTo(70, -62);
+      ctx.lineTo(150, 0);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      const buildings = location.id === "market" ? 4 : 2;
+      for (let i = 0; i < buildings; i += 1) {
+        const bx = -104 + i * 58;
+        const bh = 42 + (i % 3) * 12;
+        ctx.fillStyle = cold ? "#383c39" : "#373a34";
+        ctx.fillRect(bx, -bh, 46, bh);
+        ctx.fillStyle = cold ? "#2e3330" : "#2c302b";
+        ctx.beginPath();
+        ctx.moveTo(bx - 7, -bh);
+        ctx.lineTo(bx + 10, -bh - 18);
+        ctx.lineTo(bx + 53, -bh - 18);
+        ctx.lineTo(bx + 53, -bh);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    ctx.fillStyle = "rgba(12,13,11,0.24)";
+    ctx.beginPath();
+    ctx.ellipse(0, 2, location.id === "river" || location.id === "iceRiver" ? 130 : 80, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = "10px 'Microsoft YaHei', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(231,223,207,0.28)";
+    ctx.fillText(location.name, x, baseY + 19);
+    ctx.restore();
+  }
   function drawMountains(ctx, width, horizon, cold) {
     ctx.save();
     ctx.fillStyle = cold ? "rgba(58,62,61,0.52)" : "rgba(55,61,54,0.42)";
@@ -3634,6 +3996,9 @@ const label = document.createElement("strong");
     dom.exploreClock = $("#explore-clock");
     dom.exploreClockText = $("#explore-clock-text");
     dom.exploreClockBar = $("#explore-clock-bar");
+    dom.exploreMinimap = $("#explore-minimap");
+    dom.exploreMinimapText = $("#explore-minimap-text");
+    dom.exploreMinimapTrack = $("#explore-minimap-track");
     dom.chapterCaption = $("#chapter-caption");
     dom.chapterActions = $("#chapter-actions");
     dom.exploreLayer = $("#explore-layer");
@@ -3914,6 +4279,19 @@ const label = document.createElement("strong");
     init();
   }
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
