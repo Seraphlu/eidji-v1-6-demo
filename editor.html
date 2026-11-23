@@ -1,0 +1,113 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c1d19">
+  <title>额吉 · 剧情文字工坊</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="editor.css?v=1.0.1">
+</head>
+<body>
+  <div id="editor-app">
+    <aside class="editor-sidebar">
+      <header class="brand">
+        <p class="brand-kicker">EIDJI · STORY DESK</p>
+        <h1>剧情文字工坊</h1>
+        <p>直接编辑序章、25 天事件、人物、梦境与档案。</p>
+      </header>
+
+      <div class="sidebar-tools">
+        <button id="btn-open-game" class="sidebar-action" type="button">打开游戏 ↗</button>
+        <button id="btn-reset-data" class="sidebar-action" type="button">恢复当前数据</button>
+      </div>
+
+      <div class="sidebar-search">
+        <label for="search-input">全文搜索</label>
+        <input id="search-input" type="search" placeholder="例如：石头、木梳、寒潮">
+        <div id="search-results" class="search-results is-hidden"></div>
+      </div>
+
+      <details class="replace-box">
+        <summary>批量查找替换</summary>
+        <label for="find-input">查找</label>
+        <input id="find-input" type="text" placeholder="原文字">
+        <label for="replace-input">替换为</label>
+        <input id="replace-input" type="text" placeholder="新文字">
+        <div class="replace-actions">
+          <button id="btn-count-replace" type="button">统计</button>
+          <button id="btn-replace-all" type="button">全部替换</button>
+        </div>
+        <p id="replace-status" class="replace-status">在所有文本字段中查找。</p>
+      </details>
+
+      <nav id="section-nav" class="section-nav" aria-label="内容分类"></nav>
+
+      <footer class="sidebar-footer">
+        <span class="draft-dot" aria-hidden="true"></span>
+        <span>编辑会自动保存为浏览器草稿</span>
+      </footer>
+    </aside>
+
+    <main class="editor-main">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <p id="breadcrumb" class="breadcrumb">当前游戏数据</p>
+          <div class="topbar-title-row">
+            <h2 id="section-title">选择左侧分类开始编辑</h2>
+            <span id="dirty-status" class="dirty-status">已同步</span>
+          </div>
+          <p id="section-caption" class="section-caption"></p>
+        </div>
+        <div class="topbar-actions">
+          <button id="btn-validate" class="tool-button" type="button">检查文字</button>
+          <button id="btn-import" class="tool-button" type="button">导入 JSON</button>
+          <button id="btn-export-json" class="tool-button" type="button">导出 JSON</button>
+          <button id="btn-save-data" class="tool-button is-primary" type="button">保存 data.js</button>
+        </div>
+      </header>
+
+      <div id="draft-banner" class="draft-banner is-hidden">
+        <div>
+          <strong>发现浏览器草稿</strong>
+          <span id="draft-time"></span>
+        </div>
+        <div class="draft-actions">
+          <button id="btn-restore-draft" type="button">恢复草稿</button>
+          <button id="btn-discard-draft" type="button">丢弃</button>
+        </div>
+      </div>
+
+      <section id="editor-root" class="editor-root" aria-live="polite">
+        <div class="empty-state">
+          <p class="empty-kicker">准备开始</p>
+          <h2>从左侧选择一个内容分类</h2>
+          <p>所有改动都可以导出成新的 <code>js/data.js</code>，直接替换游戏里的原文件。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <input id="file-import" type="file" accept=".json,application/json" hidden>
+
+  <dialog id="validation-dialog" class="editor-dialog">
+    <div class="dialog-head">
+      <div>
+        <p class="eyebrow">内容校验</p>
+        <h2>检查结果</h2>
+      </div>
+      <button id="btn-close-dialog" class="dialog-close" type="button" aria-label="关闭">×</button>
+    </div>
+    <div id="validation-content" class="validation-content"></div>
+    <div class="dialog-actions">
+      <button id="btn-dialog-ok" class="tool-button is-primary" type="button">知道了</button>
+    </div>
+  </dialog>
+
+  <div id="editor-toast" class="editor-toast" aria-live="polite"></div>
+
+  <script src="js/data.js?v=1.6.1"></script>
+  <script src="js/editor.js?v=1.0.1"></script>
+</body>
+</html>
+
