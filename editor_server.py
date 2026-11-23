@@ -57,7 +57,7 @@ def save_data(content):
         stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
         backup = BACKUP_DIR / ('data-' + stamp + '.js')
         shutil.copy2(DATA_FILE, backup)
-    DATA_FILE.write_text(content, encoding='utf-8')
+    DATA_FILE.write_bytes(content.encode('utf-8'))
     return backup
 
 
