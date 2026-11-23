@@ -971,6 +971,21 @@
     return true;
   }
 
+  function drawChapterPanorama(ctx, image, width, height, cameraX) {
+    if (!image || !image.complete || !image.naturalWidth) return false;
+    const scale = height / image.naturalHeight;
+    const drawWidth = image.naturalWidth * scale;
+    const viewWidth = explore.viewWidth || width;
+    const maxWorldCamera = Math.max(0, EXPLORE_WORLD_WIDTH - viewWidth);
+    const ratio = maxWorldCamera > 0
+      ? clamp((cameraX == null ? explore.cameraX : cameraX) / maxWorldCamera, 0, 1)
+      : 0.5;
+    const maxOffset = Math.max(0, drawWidth - width);
+    const offset = maxOffset * ratio;
+    ctx.drawImage(image, -offset, 0, drawWidth, height);
+    return true;
+  }
+
   function prepareCanvas(canvas) {
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
@@ -2802,13 +2817,16 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     ctx.clearRect(0, 0, width, height);
 
     const exploring = state.phase === "action" && explore.active;
+    let artDrawn = false;
     if (exploring) {
-      drawExploreWorldScene(ctx, width, height, weather, t);
+      artDrawn = drawExploreWorldScene(ctx, width, height, weather, t);
     } else {
       const artKey = state.day >= 16 ? "chapter1Winter" : "chapter1Background";
-      const artDrawn = drawCover(ctx, artImages[artKey], 0, 0, width, height);
-      if (!artDrawn) drawChapterPlaceholder(ctx, width, height, weather, t);
-      if (state.phase !== "story") drawChapterFigures(ctx, width, height, t);
+      artDrawn = drawChapterPanorama(ctx, artImages[artKey], width, height, explore.cameraX || 0);
+      if (!artDrawn) {
+        drawChapterPlaceholder(ctx, width, height, weather, t);
+        if (state.phase !== "story") drawChapterFigures(ctx, width, height, t);
+      }
     }
 
     if (weather.includes("雪") || weather.includes("霜")) {
@@ -2827,7 +2845,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     ctx.save();
     ctx.font = "11px 'Microsoft YaHei', sans-serif";
     ctx.fillStyle = "rgba(231,223,207,0.28)";
-    ctx.fillText(exploring ? "横向地图 · 镜头跟随 · 美术素材待接入" : "灰盒场景 · 美术素材待接入", 18, height - 18);
+    if (!artDrawn) {
+      ctx.fillText(exploring ? "横向地图 · 镜头跟随 · 美术素材待接入" : "灰盒场景 · 美术素材待接入", 18, height - 18);
+    }
     ctx.restore();
   }
 
@@ -2879,6 +2899,10 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
 
   function drawExploreWorldScene(ctx, width, height, weather, t) {
     const cameraX = explore.cameraX || 0;
+    const artKey = state.day >= 16 ? "chapter1Winter" : "chapter1Background";
+    if (drawChapterPanorama(ctx, artImages[artKey], width, height, cameraX)) {
+      return true;
+    }
     const cold = state.day >= 16 || weather.includes("雪");
     const horizon = height * 0.63;
     const baseY = height * 0.80;
@@ -2955,6 +2979,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     ctx.fillStyle = "rgba(20,22,19,0.2)";
     ctx.fillRect(0, baseY - 2, width, 4);
     ctx.restore();
+    return false;
   }
 
   function drawExploreWorldLandmark(ctx, location, x, baseY, cold, t) {

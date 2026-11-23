@@ -1283,7 +1283,7 @@
 ];
 
   const ART_MANIFEST = {
-  "chapter1Background": "",
+  "chapter1Background": "assets/chapter1-run-background.jpg",
   "chapter1Winter": "",
   "finalSnow": "",
   "grasslandBackground": "",

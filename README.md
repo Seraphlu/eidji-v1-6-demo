@@ -69,7 +69,7 @@ const ART_MANIFEST = {
 };
 ```
 
-目前实际接入的是两张第一章背景：`chapter1Background` 与 `chapter1Winter`。其余清单键位已预留，后续可以在正式引擎或本 Demo 中继续接入。
+目前实际接入的是 D1–D15 的江南横向跑图背景 `assets/chapter1-run-background.jpg`。D16 后的冬季背景暂未接入，继续使用灰盒占位。其余清单键位已预留，后续可以继续接入。
 
 详细规范见 `assets/README.md`。
 
