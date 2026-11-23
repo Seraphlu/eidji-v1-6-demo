@@ -2495,7 +2495,7 @@ button:focus-visible {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .scene-art-banner.is-timing-art {
@@ -3181,7 +3181,39 @@ button:focus-visible {
   letter-spacing: 0.05em;
 }
 
-/* Responsive *//* Responsive */
+.modal-card.is-wide {
+  width: min(1080px, calc(100vw - 2rem));
+  padding: clamp(1rem, 1.6vw, 1.55rem);
+}
+
+.modal-card.is-art-modal .scene-art-banner {
+  height: clamp(18rem, 44vh, 30rem);
+  max-height: none;
+  margin-bottom: 1rem;
+  aspect-ratio: auto;
+}
+
+.modal-card.is-art-modal .event-art-body {
+  gap: 0.65rem;
+}
+
+.modal-card.is-art-modal .event-art-copy {
+  padding: 0 0.2rem;
+  line-height: 1.75;
+}
+
+.modal-card.is-art-modal .timing-game,
+.modal-card.is-art-modal .bark-game,
+.modal-card.is-art-modal .hold-game {
+  margin-top: 0;
+}
+
+.modal-card.is-art-modal .hold-instruction,
+.modal-card.is-art-modal .bark-instruction {
+  max-width: 42rem;
+}
+
+/* Responsive */
 
 @media (max-width: 960px) {
   .chapter-layout {
@@ -3347,6 +3379,15 @@ button:focus-visible {
 
   .plant-card {
     min-height: auto;
+  }
+
+  .modal-card.is-wide {
+    width: 100%;
+    padding: 0.85rem;
+  }
+
+  .modal-card.is-art-modal .scene-art-banner {
+    height: min(38vh, 18rem);
   }
 
   .plant-shape {
@@ -3760,3 +3801,6 @@ button:focus-visible {
   opacity: 0;
   pointer-events: none;
 }
+
+
+
