@@ -1285,7 +1285,7 @@
 
   const ART_MANIFEST = {
   "chapter1Background": "assets/chapter1-run-background.jpg",
-  "chapter1Winter": "",
+  "chapter1Winter": "assets/chapter1-winter-background.jpg",
   "finalSnow": "",
   "grasslandBackground": "",
   "yurtNight": "",
