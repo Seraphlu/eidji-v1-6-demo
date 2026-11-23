@@ -35,6 +35,9 @@ const ART_MANIFEST = {
 
 - `chapter1Background`：D1–D15 的江南跑图卷轴背景，当前已接入 `assets/chapter1-run-background.jpg`。
 - `chapter1Winter`：D16 起的冬季背景，当前暂未接入，继续使用灰盒占位。
+- `clothTiger`：第 2 天“布老虎”事件插图，当前使用 `assets/cloth-tiger-scene.png`。
+- `barkScene`：剥树皮互动场景，当前使用 `assets/locust-bark-scene.jpg`。
+- `fishingScene`：摸鱼小游戏场景，当前使用 `assets/fishing-scene.jpg`。
 
 其余键位已经保留，可在后续迭代中继续接入角色、终局雪景与草原场景。
 

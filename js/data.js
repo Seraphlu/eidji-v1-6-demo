@@ -580,6 +580,7 @@
   "2": {
     "title": "布老虎",
     "weather": "阴冷",
+    "art": "assets/cloth-tiger-scene.png",
     "text": "你在铺盖下摸到母亲留下的布老虎。棉花已经结成硬块，虎耳朵也磨破了。\n你把它塞回怀里。",
     "note": "家人的模样早已变成了一段模糊不清的前程往事。"
   },
@@ -870,8 +871,8 @@
     "label": "剥榆树皮",
     "short": "磨榆皮粉",
     "icon": "榆",
-    "description": "剥下树皮，磨成能咽下去的粉。",
-    "kind": "instant",
+    "description": "按住树干，把冻硬的树皮一点点剥下来。",
+    "kind": "bark",
     "gain": {
       "bark": 2
     },
@@ -1292,7 +1293,9 @@
   "xiaonan": "",
   "stone": "",
   "naren": "",
-  "clothTiger": ""
+  "clothTiger": "assets/cloth-tiger-scene.png",
+  "barkScene": "assets/locust-bark-scene.jpg",
+  "fishingScene": "assets/fishing-scene.jpg"
 };
 
   window.EIDJI_DATA = {

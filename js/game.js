@@ -1326,6 +1326,17 @@
     openDayEvent(event);
   }
 
+  function createSceneArtBanner(imagePath, altText, extraClass) {
+    const figure = document.createElement("figure");
+    figure.className = "scene-art-banner" + (extraClass ? " " + extraClass : "");
+    const image = document.createElement("img");
+    image.src = imagePath;
+    image.alt = altText || "";
+    image.decoding = "async";
+    figure.appendChild(image);
+    return figure;
+  }
+
   function openDayEvent(event) {
     state.flags["event-seen-" + state.day] = true;
     saveGame();
@@ -1368,10 +1379,21 @@
     if (state.day === 24 && state.bonds.huiming >= 5) {
       eventBody += "\n\n他把念珠塞进你手里：“替师父……去北边看看。”";
     }
+    let bodyNode = eventBody;
+    if (event.art) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "event-art-body";
+      wrapper.appendChild(createSceneArtBanner(event.art, event.title));
+      const copy = document.createElement("div");
+      copy.className = "event-art-copy";
+      copy.textContent = eventBody;
+      wrapper.appendChild(copy);
+      bodyNode = wrapper;
+    }
     openModal({
       eyebrow: "第 " + state.day + " 天 · " + event.weather,
       title: event.title,
-      body: eventBody,
+      body: bodyNode,
       actions: [{
         label: "开始行动",
         primary: true,
@@ -2143,6 +2165,10 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
       openHoldAction(action);
       return;
     }
+    if (action.kind === "bark") {
+      openBarkAction(action);
+      return;
+    }
     completeAction(action, true);
   }
 
@@ -2158,6 +2184,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
         "<span class=\"timing-marker\"></span>" +
       "</div>" +
       "<p class=\"timing-hint\">" + (isQueue ? "在人堆挤过来之前，护住碗。" : "看准鱼影经过亮处的一瞬。") + "</p>";
+    if (!isQueue && DATA.ART_MANIFEST.fishingScene) {
+      body.prepend(createSceneArtBanner(DATA.ART_MANIFEST.fishingScene, "雪后河滩摸鱼", "is-timing-art"));
+    }
 
     let position = 0;
     let direction = 1;
@@ -2210,6 +2239,75 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
       }
       marker.style.left = position + "%";
     }, 16);
+  }
+
+  function openBarkAction(action) {
+    const body = document.createElement("div");
+    body.className = "bark-game";
+    if (DATA.ART_MANIFEST.barkScene) {
+      body.appendChild(createSceneArtBanner(DATA.ART_MANIFEST.barkScene, "村外老槐树", "is-bark-art"));
+    }
+    const instruction = document.createElement("p");
+    instruction.className = "bark-instruction";
+    instruction.textContent = "按住露出的树干，向下拉动，把冻硬的树皮一点点剥下来。";
+    const pad = document.createElement("button");
+    pad.type = "button";
+    pad.className = "bark-peel-pad";
+    pad.innerHTML = "<span class=\"bark-peel-fill\"></span><strong>按住向下拉</strong>";
+    const progress = document.createElement("div");
+    progress.className = "bark-progress";
+    progress.innerHTML = "<span></span>";
+    body.appendChild(instruction);
+    body.appendChild(pad);
+    body.appendChild(progress);
+
+    let dragging = false;
+    let lastY = 0;
+    let amount = 0;
+    let resolved = false;
+    const fill = progress.querySelector("span");
+    const update = () => {
+      fill.style.width = clamp(amount, 0, 100) + "%";
+      pad.style.setProperty("--peel-progress", clamp(amount, 0, 100) + "%");
+      if (amount >= 100 && !resolved) {
+        resolved = true;
+        dragging = false;
+        showToast("你剥下一长条树皮，掌心被磨破了。");
+        setTimeout(() => completeAction(action, true), 320);
+      }
+    };
+    pad.addEventListener("pointerdown", (event) => {
+      if (resolved) return;
+      event.preventDefault();
+      dragging = true;
+      lastY = event.clientY;
+      instruction.textContent = "别急，沿着裂开的树缝往下剥。";
+      try { pad.setPointerCapture(event.pointerId); } catch (error) { /* synthetic pointer */ }
+      pad.classList.add("is-working");
+    });
+    pad.addEventListener("pointermove", (event) => {
+      if (!dragging || resolved) return;
+      const distance = Math.max(0, event.clientY - lastY);
+      lastY = event.clientY;
+      amount += distance * 0.55;
+      update();
+    });
+    const stop = () => {
+      dragging = false;
+      pad.classList.remove("is-working");
+    };
+    pad.addEventListener("pointerup", stop);
+    pad.addEventListener("pointercancel", stop);
+    pad.addEventListener("pointerleave", stop);
+
+    openModal({
+      eyebrow: "村外 · 剥树皮",
+      title: "树皮下面还有一点活路",
+      body,
+      dismissible: false,
+      cleanup: stop,
+      actions: [{ label: "今天先不剥了", onClick: () => completeAction(action, false) }]
+    });
   }
 
   function openScrubAction(action) {
