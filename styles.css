@@ -2972,3 +2972,103 @@ button:focus-visible {
   from { transform: translateY(0) scaleY(1); }
   to { transform: translateY(-0.12rem) scaleY(0.985); }
 }
+
+/* Side-scrolling map minimap */
+
+.explore-minimap {
+  position: absolute;
+  top: 3.4rem;
+  left: 1rem;
+  z-index: 7;
+  width: min(250px, 28vw);
+  padding: 0.55rem 0.65rem 0.7rem;
+  border: 1px solid rgba(231, 223, 207, 0.14);
+  background: rgba(11, 12, 10, 0.66);
+  backdrop-filter: blur(7px);
+}
+
+.explore-minimap-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+  color: rgba(231, 223, 207, 0.46);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.explore-minimap-head strong {
+  color: rgba(231, 223, 207, 0.76);
+  font-weight: 400;
+}
+
+.explore-minimap-track {
+  position: relative;
+  height: 6px;
+  border: 1px solid rgba(231, 223, 207, 0.14);
+  background:
+    repeating-linear-gradient(90deg, rgba(231, 223, 207, 0.1) 0 1px, transparent 1px 10%),
+    rgba(231, 223, 207, 0.05);
+}
+
+.minimap-location,
+.minimap-player {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.minimap-location {
+  width: 5px;
+  height: 5px;
+  border: 1px solid rgba(208, 162, 131, 0.82);
+  border-radius: 50%;
+  background: rgba(28, 26, 21, 0.9);
+}
+
+.minimap-location.is-current-action {
+  background: #c99067;
+  box-shadow: 0 0 8px rgba(201, 144, 103, 0.6);
+}
+
+.minimap-player {
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e7dfcf;
+  box-shadow: 0 0 9px rgba(231, 223, 207, 0.52);
+}
+
+@media (max-width: 720px) {
+  .explore-minimap {
+    top: auto;
+    bottom: 8.2rem;
+    left: 0.7rem;
+    width: 9.7rem;
+    padding: 0.42rem 0.48rem 0.55rem;
+  }
+
+  .explore-minimap-head {
+    margin-bottom: 0.32rem;
+    font-size: 0.52rem;
+  }
+
+  .explore-minimap-head strong {
+    overflow: hidden;
+    max-width: 4.5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.explore-hotspot,
+.explore-pickup {
+  transition: left 0.06s linear, opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.explore-hotspot.is-offscreen,
+.explore-pickup.is-offscreen {
+  opacity: 0;
+  pointer-events: none;
+}
