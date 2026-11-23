@@ -11,13 +11,15 @@
   const EXPLORE_DAY_SECONDS = 60;
   const EXPLORE_WORLD_WIDTH = 3900;
   const EXPLORE_START_X = 900;
+  const PANORAMA_HALL_WORLD_X = 2060;
+  const PANORAMA_HALL_IMAGE_RATIO = 2250 / 4382;
   const EXPLORE_LOCATION_LAYOUT = {
     canteen: { x: 260, bottom: 27 },
-    hall: { x: 760, bottom: 35 },
+    hall: { x: 2060, bottom: 35 },
     dorm: { x: 1120, bottom: 27 },
     field: { x: 1520, bottom: 22 },
-    river: { x: 1960, bottom: 19 },
-    iceRiver: { x: 2070, bottom: 19 },
+    river: { x: 1800, bottom: 19 },
+    iceRiver: { x: 1860, bottom: 19 },
     elm: { x: 2300, bottom: 30 },
     supply: { x: 2570, bottom: 25 },
     town: { x: 2760, bottom: 26 },
@@ -42,6 +44,7 @@
   let modalCleanup = null;
   let modalDismissible = false;
   let toastTimer = null;
+  let sceneWhisperTimer = null;
   let chapterRaf = null;
   let chapterStartedAt = 0;
   let interludeTimers = [];
@@ -460,6 +463,14 @@
     toastTimer = setTimeout(() => dom.toast.classList.remove("is-visible"), 2600);
   }
 
+  function showSceneWhisper(text, duration) {
+    if (!dom.sceneWhisper || !text) return;
+    dom.sceneWhisper.textContent = text;
+    dom.sceneWhisper.classList.add("is-visible");
+    clearTimeout(sceneWhisperTimer);
+    sceneWhisperTimer = setTimeout(() => dom.sceneWhisper.classList.remove("is-visible"), duration || 4800);
+  }
+
   function showScreen(id) {
     document.querySelectorAll(".screen").forEach((screen) => {
       screen.classList.toggle("is-active", screen.id === id);
@@ -777,6 +788,7 @@
     body.appendChild(header);
 
     const tabs = [
+      { id: "today", label: "今日" },
       { id: "skills", label: "技能" },
       { id: "recipes", label: "灶台" },
       { id: "people", label: "人" },
@@ -793,7 +805,98 @@
       });
       pane.innerHTML = "";
 
-      if (tabId === "skills") {
+      if (tabId === "today") {
+        const intro = document.createElement("p");
+        intro.className = "panel-intro";
+        intro.textContent = "今天的天气、状态、物资与人物关系都收在这里，不再常驻占用场景。";
+        pane.appendChild(intro);
+
+        const grid = document.createElement("div");
+        grid.className = "today-grid";
+
+        const makeCard = (title) => {
+          const card = document.createElement("article");
+          card.className = "today-card";
+          const heading = document.createElement("h3");
+          heading.textContent = title;
+          card.appendChild(heading);
+          grid.appendChild(card);
+          return card;
+        };
+
+        const event = DATA.DAILY_EVENTS[state.day] || {};
+        const weatherCard = makeCard("第 " + state.day + " 天 · " + (event.weather || "天气未定"));
+        const forecast = document.createElement("p");
+        const nextEvent = DATA.DAILY_EVENTS[Math.min(25, state.day + 1)];
+        forecast.textContent = "明日预兆：" + (nextEvent ? nextEvent.weather : "风雪未定");
+        weatherCard.appendChild(forecast);
+        const statusRow = document.createElement("div");
+        statusRow.className = "today-status-row";
+        getStatuses().forEach((status) => {
+          const chip = document.createElement("span");
+          chip.className = "status-chip is-" + status.tone;
+          chip.textContent = status.label;
+          statusRow.appendChild(chip);
+        });
+        weatherCard.appendChild(statusRow);
+
+        const communityCard = makeCard("庵里的气息");
+        const smokeLine = document.createElement("p");
+        smokeLine.textContent = "炊烟：" + getCommunityWord(state.community.smoke, "smoke");
+        const peopleLine = document.createElement("p");
+        peopleLine.textContent = "人气：" + getCommunityWord(state.community.popularity, "people");
+        communityCard.appendChild(smokeLine);
+        communityCard.appendChild(peopleLine);
+
+        const inventoryCard = makeCard("手里带着的东西");
+        const inventoryEntries = Object.keys(DATA.FOODS).filter((type) => (state.inventory[type] || 0) > 0);
+        if (!inventoryEntries.length) {
+          const empty = document.createElement("p");
+          empty.textContent = "空着。";
+          inventoryCard.appendChild(empty);
+        } else {
+          inventoryEntries.forEach((type) => {
+            const line = document.createElement("p");
+            line.textContent = DATA.FOODS[type].label + " × " + state.inventory[type];
+            inventoryCard.appendChild(line);
+          });
+        }
+
+        const noteCard = makeCard("风声与手记");
+        const rumor = document.createElement("p");
+        rumor.className = "today-rumor";
+        rumor.textContent = getDailyRumor();
+        const note = document.createElement("blockquote");
+        note.textContent = event.note || "";
+        noteCard.appendChild(rumor);
+        noteCard.appendChild(note);
+
+        const bondCard = makeCard("被记住的人");
+        DATA.NPC_PROFILES.forEach((profile) => {
+          const line = document.createElement("p");
+          line.className = "today-bond-row";
+          const points = state.bonds[profile.id] || 0;
+          line.textContent = profile.name + " · " + getBondLevel(points).name;
+          bondCard.appendChild(line);
+        });
+
+        const recentCard = makeCard("刚刚发生");
+        const recent = state.log.slice(-4).reverse();
+        if (!recent.length) {
+          const empty = document.createElement("p");
+          empty.textContent = "还没有写下什么。";
+          recentCard.appendChild(empty);
+        } else {
+          recent.forEach((entry) => {
+            const line = document.createElement("p");
+            line.className = "today-event";
+            line.textContent = "D" + entry.day + " · " + entry.text;
+            recentCard.appendChild(line);
+          });
+        }
+
+        pane.appendChild(grid);
+      } else if (tabId === "skills") {
         const intro = document.createElement("p");
         intro.className = "panel-intro";
         intro.textContent = "行动成功会留下经验。生手 → 熟练 → 行家，每级产量 +25%。";
@@ -933,7 +1036,7 @@
     });
     body.appendChild(tabRow);
     body.appendChild(pane);
-    renderTab("skills");
+    renderTab("today");
 
     openModal({
       eyebrow: "生存手札 · J",
@@ -981,7 +1084,14 @@
       ? clamp((cameraX == null ? explore.cameraX : cameraX) / maxWorldCamera, 0, 1)
       : 0.5;
     const maxOffset = Math.max(0, drawWidth - width);
-    const offset = maxOffset * ratio;
+    const hallCamera = maxWorldCamera > 0
+      ? clamp(PANORAMA_HALL_WORLD_X - viewWidth / 2, 0, maxWorldCamera)
+      : 0;
+    const hallRatio = maxWorldCamera > 0 ? hallCamera / maxWorldCamera : 0.5;
+    const imageFocusX = image.naturalWidth * PANORAMA_HALL_IMAGE_RATIO;
+    const desiredHallOffset = imageFocusX * scale - width / 2;
+    const calibration = desiredHallOffset - maxOffset * hallRatio;
+    const offset = clamp(maxOffset * ratio + calibration, 0, maxOffset);
     ctx.drawImage(image, -offset, 0, drawWidth, height);
     return true;
   }
@@ -1454,6 +1564,14 @@
     if (dom.rumorText) dom.rumorText.textContent = getDailyRumor();
     dom.chapterCaption.textContent = getChapterCaption(event);
     dom.journalText.textContent = event ? event.note : "";
+    if (state.phase === "action" && !state.flags["whisper-day-" + state.day]) {
+      state.flags["whisper-day-" + state.day] = true;
+      setTimeout(() => {
+        if (state && state.phase === "action") showSceneWhisper(getDailyRumor());
+      }, 650);
+    } else if (state.phase !== "action" && dom.sceneWhisper) {
+      dom.sceneWhisper.classList.remove("is-visible");
+    }
     renderStats();
     renderStatusStrip();
     renderCommunity();
@@ -4025,6 +4143,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     dom.exploreMinimapText = $("#explore-minimap-text");
     dom.exploreMinimapTrack = $("#explore-minimap-track");
     dom.chapterCaption = $("#chapter-caption");
+    dom.sceneWhisper = $("#scene-whisper");
     dom.chapterActions = $("#chapter-actions");
     dom.exploreLayer = $("#explore-layer");
     dom.exploreHotspots = $("#explore-hotspots");
