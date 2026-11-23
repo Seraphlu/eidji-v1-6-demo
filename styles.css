@@ -17,6 +17,13 @@
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
   --serif: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", Georgia, serif;
   --sans: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  --hand: "KaiTi", "STKaiti", "FangSong", "Songti SC", serif;
+  --type: "Courier New", "Noto Sans Mono CJK SC", monospace;
+  --archive-paper: #dfd4bf;
+  --archive-paper-light: #eee7d8;
+  --archive-ink: #2b2821;
+  --archive-red: #8f4938;
+  --archive-blue: #72888b;
 }
 
 * {
@@ -2726,7 +2733,455 @@ button:focus-visible {
   font-size: 0.62rem;
 }
 
-/* Responsive */
+/* Chinese handscroll UI */
+
+#title-screen::after {
+  content: "一九六〇 — 一九六三  内蒙古接收入档";
+  position: absolute;
+  right: 2.8vw;
+  bottom: 2rem;
+  color: rgba(231, 223, 207, 0.13);
+  font-family: var(--hand);
+  font-size: clamp(0.62rem, 0.9vw, 0.8rem);
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
+}
+
+.title-copy {
+  position: relative;
+}
+
+.title-copy::before {
+  content: "江南 · 丁丑卷";
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(194, 165, 126, 0.34);
+  color: rgba(222, 212, 195, 0.66);
+  font-family: var(--hand);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+}
+
+.title-copy::after {
+  content: "三千孤儿入内蒙";
+  position: absolute;
+  top: 0.1rem;
+  left: min(18.5rem, 34vw);
+  padding: 0.38rem 0.24rem;
+  border: 2px solid rgba(170, 75, 56, 0.7);
+  color: rgba(190, 91, 70, 0.74);
+  font-family: var(--hand);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  line-height: 1.14;
+  writing-mode: vertical-rl;
+  transform: rotate(2.4deg);
+  opacity: 0.74;
+}
+
+.title-copy h1 {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 8px 45px rgba(0, 0, 0, 0.35), 0 0 1px rgba(255, 245, 225, 0.24);
+}
+
+.title-menu {
+  counter-reset: archive-menu;
+  padding: 1rem 0 1rem 1.05rem;
+  border: 0;
+  border-left: 1px solid rgba(178, 146, 105, 0.34);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.title-menu::before {
+  content: "目 录";
+  margin-bottom: 0.85rem;
+  color: rgba(218, 200, 173, 0.42);
+  font-family: var(--hand);
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+}
+
+.title-menu .menu-button {
+  display: grid;
+  grid-template-columns: 1.8rem minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.4rem;
+  border: 0;
+  border-bottom: 1px solid rgba(218, 200, 173, 0.12);
+  background: transparent;
+  color: rgba(231, 223, 207, 0.82);
+  font-family: var(--hand);
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  counter-increment: archive-menu;
+}
+
+.title-menu .menu-button::before {
+  content: "0" counter(archive-menu);
+  color: rgba(172, 91, 67, 0.78);
+  font-family: var(--type);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+}
+
+.title-menu .menu-button:hover {
+  border-color: rgba(178, 146, 105, 0.3);
+  background: linear-gradient(90deg, rgba(157, 77, 56, 0.14), transparent 88%);
+  color: #f2e7d3;
+  transform: translateX(4px);
+}
+
+.title-menu .menu-button-primary {
+  border-bottom-color: rgba(178, 146, 105, 0.3);
+  background: linear-gradient(90deg, rgba(157, 77, 56, 0.18), transparent 92%);
+  color: #f1dfc8;
+}
+
+.title-menu .menu-button:disabled {
+  color: rgba(231, 223, 207, 0.24);
+}
+
+.title-menu .save-meta {
+  margin: 0.7rem 0 0;
+  color: rgba(231, 223, 207, 0.38);
+  font-family: var(--type);
+  font-size: 0.58rem;
+}
+
+.chapter-hud {
+  position: relative;
+  min-height: 72px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(196, 170, 132, 0.2);
+  background:
+    linear-gradient(180deg, rgba(15, 16, 13, 0.94), rgba(15, 16, 13, 0.76)),
+    radial-gradient(ellipse at 50% 0, rgba(120, 91, 58, 0.16), transparent 58%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.chapter-hud::after {
+  content: "";
+  position: absolute;
+  right: 2%;
+  bottom: -1px;
+  left: 2%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168, 76, 55, 0.54), transparent);
+}
+
+.chapter-hud .icon-button {
+  border-color: rgba(196, 170, 132, 0.24);
+  border-radius: 50%;
+  color: rgba(221, 207, 185, 0.72);
+  font-family: var(--serif);
+  font-size: 0.68rem;
+}
+
+.day-readout {
+  position: relative;
+  min-width: 7.2rem;
+  padding: 0.22rem 0.8rem 0.24rem 1rem;
+  border-left: 0;
+  background: transparent;
+}
+
+.day-readout::before {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  bottom: 0.2rem;
+  left: 0;
+  width: 2px;
+  background: rgba(168, 76, 55, 0.76);
+  box-shadow: 0 0 14px rgba(168, 76, 55, 0.2);
+}
+
+.day-label {
+  font-family: var(--hand);
+  font-size: 1.22rem;
+  letter-spacing: 0.14em;
+}
+
+.phase-label {
+  color: rgba(221, 207, 185, 0.46);
+  font-family: var(--hand);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+}
+
+.stats-bar {
+  gap: 0;
+}
+
+.stat {
+  min-width: 0;
+  padding: 0.18rem 0.8rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.stat + .stat {
+  border-left: 1px solid rgba(196, 170, 132, 0.14);
+}
+
+.stat::before,
+.stat::after {
+  display: none;
+}
+
+.stat-head {
+  color: rgba(221, 207, 185, 0.56);
+  font-family: var(--hand);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+}
+
+.stat-head strong {
+  color: rgba(238, 225, 205, 0.9);
+  font-family: var(--type);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-track {
+  height: 2px;
+  background: rgba(221, 207, 185, 0.1);
+}
+
+.stat-fill {
+  background: linear-gradient(90deg, rgba(126, 142, 137, 0.85), rgba(186, 161, 119, 0.9));
+}
+
+.stat.is-low {
+  border-left-color: rgba(168, 76, 55, 0.28);
+}
+
+.hud-tools .text-button {
+  border: 0;
+  border-left: 1px solid rgba(196, 170, 132, 0.16);
+  background: transparent;
+  color: rgba(221, 207, 185, 0.5);
+  font-family: var(--hand);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.hud-tools .text-button:hover {
+  background: rgba(157, 77, 56, 0.1);
+  color: #eadcc7;
+}
+
+.weather-chip {
+  padding: 0.42rem 0.68rem 0.44rem;
+  border: 0;
+  border-left: 2px solid rgba(161, 73, 53, 0.72);
+  background: linear-gradient(90deg, rgba(232, 224, 207, 0.86), rgba(218, 207, 188, 0.18));
+  color: rgba(43, 39, 31, 0.88);
+  font-family: var(--hand);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  box-shadow: none;
+  transform: none;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.weather-chip::before {
+  display: none;
+}
+
+.chapter-caption {
+  max-width: min(27rem, 44%);
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-right: 2px solid rgba(161, 73, 53, 0.58);
+  background: linear-gradient(270deg, rgba(232, 224, 207, 0.9), rgba(232, 224, 207, 0.42) 70%, transparent);
+  color: rgba(43, 39, 31, 0.9);
+  font-family: var(--hand);
+  font-size: clamp(0.9rem, 1.15vw, 1.02rem);
+  line-height: 1.75;
+  box-shadow: none;
+  transform: none;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.chapter-caption::before {
+  display: none;
+}
+
+.scene-whisper {
+  border: 0;
+  border-left: 2px solid rgba(161, 73, 53, 0.62);
+  background: linear-gradient(90deg, rgba(232, 224, 207, 0.88), rgba(232, 224, 207, 0.3) 76%, transparent);
+  color: rgba(43, 39, 31, 0.9);
+  font-family: var(--hand);
+  font-size: 0.8rem;
+  box-shadow: none;
+  transform: translateY(8px);
+}
+
+.scene-whisper.is-visible {
+  transform: translateY(0);
+}
+
+.explore-clock {
+  border: 0;
+  border-top: 1px solid rgba(161, 73, 53, 0.58);
+  background: linear-gradient(180deg, rgba(18, 18, 15, 0.82), rgba(18, 18, 15, 0.58));
+  color: rgba(231, 223, 207, 0.75);
+  box-shadow: none;
+  transform: translateX(-50%);
+  backdrop-filter: blur(5px);
+}
+
+.explore-clock-head {
+  color: rgba(221, 207, 185, 0.5);
+  font-family: var(--hand);
+  font-size: 0.62rem;
+}
+
+.explore-clock-head strong {
+  color: rgba(239, 220, 190, 0.92);
+  font-family: var(--type);
+  font-size: 0.76rem;
+}
+
+.explore-clock .progress-track {
+  background: rgba(231, 223, 207, 0.1);
+}
+
+.explore-clock .progress-track > span {
+  background: linear-gradient(90deg, rgba(140, 127, 102, 0.9), rgba(161, 73, 53, 0.9));
+}
+
+.explore-clock.is-danger {
+  border-top-color: rgba(192, 83, 61, 0.9);
+  background: rgba(45, 19, 15, 0.76);
+}
+
+.explore-minimap {
+  border: 0;
+  border-left: 1px solid rgba(196, 170, 132, 0.24);
+  background: linear-gradient(90deg, rgba(17, 18, 15, 0.64), transparent 88%);
+  box-shadow: none;
+  transform: none;
+  backdrop-filter: blur(4px);
+}
+
+.explore-minimap-head {
+  color: rgba(221, 207, 185, 0.38);
+  font-family: var(--hand);
+}
+
+.explore-minimap-head strong {
+  color: rgba(221, 207, 185, 0.66);
+}
+
+.explore-minimap-track {
+  border-color: transparent;
+  background:
+    repeating-linear-gradient(90deg, rgba(221, 207, 185, 0.08) 0 1px, transparent 1px 10%),
+    rgba(221, 207, 185, 0.025);
+}
+
+.minimap-location {
+  border-color: rgba(186, 144, 104, 0.72);
+  background: rgba(24, 24, 20, 0.9);
+}
+
+.minimap-location.is-current-action {
+  background: rgba(161, 73, 53, 0.9);
+  box-shadow: 0 0 8px rgba(161, 73, 53, 0.48);
+}
+
+.minimap-player {
+  background: rgba(239, 225, 204, 0.92);
+  box-shadow: 0 0 8px rgba(239, 225, 204, 0.44);
+}
+
+.hotspot-icon {
+  border-color: rgba(190, 151, 115, 0.62);
+  background: rgba(20, 20, 17, 0.72);
+  color: rgba(231, 214, 190, 0.92);
+  box-shadow: 0 0 0 3px rgba(20, 20, 17, 0.18);
+}
+
+.explore-hotspot strong {
+  padding: 0.08rem 0.26rem;
+  background: rgba(20, 20, 17, 0.62);
+  color: rgba(238, 225, 205, 0.92);
+  font-family: var(--hand);
+  font-size: 0.8rem;
+  box-shadow: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.explore-hotspot small {
+  color: rgba(231, 223, 207, 0.58);
+  font-family: var(--hand);
+}
+
+.explore-hotspot.is-near .hotspot-icon {
+  background: rgba(69, 46, 34, 0.88);
+  color: #f4ddc4;
+  box-shadow: 0 0 0 3px rgba(161, 73, 53, 0.22), 0 0 24px rgba(161, 73, 53, 0.26);
+}
+
+.explore-prompt {
+  border: 0;
+  border-top: 1px solid rgba(196, 170, 132, 0.18);
+  border-bottom: 1px solid rgba(196, 170, 132, 0.1);
+  background: linear-gradient(90deg, transparent, rgba(19, 19, 16, 0.76) 15%, rgba(19, 19, 16, 0.76) 85%, transparent);
+  color: rgba(231, 223, 207, 0.76);
+  font-family: var(--hand);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  box-shadow: none;
+}
+
+.explore-control,
+.explore-interact,
+.explore-return {
+  border-color: rgba(196, 170, 132, 0.24);
+  background: rgba(18, 18, 15, 0.7);
+  color: rgba(231, 223, 207, 0.72);
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+}
+
+.explore-interact {
+  border-color: rgba(161, 73, 53, 0.55);
+  color: #e5cdb2;
+}
+
+.modal-card {
+  border-color: rgba(196, 170, 132, 0.2);
+  background:
+    radial-gradient(circle at 20% 0, rgba(143, 73, 56, 0.08), transparent 34%),
+    #1b1c18;
+}
+
+.modal-card .eyebrow {
+  color: rgba(190, 119, 91, 0.86);
+  font-family: var(--hand);
+  letter-spacing: 0.16em;
+}
+
+.modal-card h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive *//* Responsive */
 
 @media (max-width: 960px) {
   .chapter-layout {
@@ -2766,8 +3221,16 @@ button:focus-visible {
     margin-top: 1.6rem;
   }
 
+  .title-copy::after {
+    top: 1.2rem;
+    right: 0;
+    left: auto;
+    font-size: 0.58rem;
+  }
+
   .title-menu {
     width: min(360px, 100%);
+    padding-left: 0.8rem;
   }
 
   .title-footer {
@@ -2866,7 +3329,7 @@ button:focus-visible {
 
   .scene-whisper {
     right: 0.8rem;
-    bottom: 9.5rem;
+    bottom: 13.5rem;
     left: 0.8rem;
     max-width: none;
     font-size: 0.74rem;
