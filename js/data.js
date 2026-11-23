@@ -1295,7 +1295,8 @@
   "naren": "",
   "clothTiger": "assets/cloth-tiger-scene.png",
   "barkScene": "assets/locust-bark-scene.jpg",
-  "fishingScene": "assets/fishing-scene.jpg"
+  "fishingScene": "assets/fishing-scene.jpg",
+  "prayScene": "assets/prayer-scene.png"
 };
 
   window.EIDJI_DATA = {

@@ -2499,6 +2499,10 @@ button:focus-visible {
   max-height: 17rem;
 }
 
+.scene-art-banner.is-prayer-art {
+  max-height: 18rem;
+}
+
 .event-art-body {
   display: grid;
   gap: 0.25rem;

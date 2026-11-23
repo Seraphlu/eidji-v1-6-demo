@@ -2392,6 +2392,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
       "</button>" +
       "<div class=\"hold-progress\"><span></span></div>" +
       "<p class=\"hold-instruction\">按住不要松手。大殿里很冷，但你可以在这里坐一会儿。</p>";
+    if (DATA.ART_MANIFEST.prayScene) {
+      body.prepend(createSceneArtBanner(DATA.ART_MANIFEST.prayScene, "佛前祈祷", "is-prayer-art"));
+    }
 
     const pad = body.querySelector(".hold-pad");
     const fill = body.querySelector(".hold-progress span");
