@@ -52,6 +52,7 @@
   let draftTimer = null;
   let toastTimer = null;
   let pendingDraft = null;
+  let serverMode = false;
 
   const dom = {
     root: document.getElementById("editor-root"), nav: document.getElementById("section-nav"),
@@ -62,7 +63,8 @@
     fileImport: document.getElementById("file-import"), replaceFind: document.getElementById("find-input"),
     replaceWith: document.getElementById("replace-input"), replaceStatus: document.getElementById("replace-status"),
     validationDialog: document.getElementById("validation-dialog"),
-    validationContent: document.getElementById("validation-content"), toast: document.getElementById("editor-toast")
+    validationContent: document.getElementById("validation-content"), toast: document.getElementById("editor-toast"),
+    btnPublish: document.getElementById("btn-publish"), btnSaveData: document.getElementById("btn-save-data")
   };
 
   function deepClone(value) {
@@ -713,8 +715,40 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  async function detectLocalServer() {
+    try {
+      const response = await fetch("/api/health", { cache: "no-store" });
+      const result = await response.json();
+      serverMode = Boolean(response.ok && result.ok && result.local);
+    } catch (error) {
+      serverMode = false;
+    }
+    if (serverMode) {
+      if (dom.btnPublish) dom.btnPublish.classList.remove("is-hidden");
+      if (dom.btnSaveData) dom.btnSaveData.textContent = "保存到游戏";
+      showToast("已连接本地编辑器服务：可保存文件并发布线上。");
+    }
+  }
+
   async function saveDataFile() {
     const content = buildDataJs();
+    if (serverMode) {
+      try {
+        const response = await fetch("/api/save-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || "本地保存失败");
+        markClean();
+        clearDraft();
+        showToast(result.backup ? ("已保存到游戏，并备份为 " + result.backup) : "已保存到游戏。刷新游戏页面即可。");
+        return;
+      } catch (error) {
+        showToast("本地保存失败，改用下载：" + error.message);
+      }
+    }
     if ("showSaveFilePicker" in window) {
       try {
         const handle = await window.showSaveFilePicker({
@@ -734,6 +768,29 @@
     markClean();
     clearDraft();
     showToast("已下载 data.js，请替换游戏目录中的 js/data.js。");
+  }
+
+  async function publishData() {
+    if (!serverMode) {
+      showToast("发布功能需要通过“启动编辑器.bat”打开本地编辑器。");
+      return;
+    }
+    if (!window.confirm("保存当前剧情并发布到 GitHub Pages？线上游戏约 1 分钟后更新。")) return;
+    const content = buildDataJs();
+    try {
+      const response = await fetch("/api/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "发布失败");
+      markClean();
+      clearDraft();
+      showToast("已发布到线上，提交：" + String(result.commit).slice(0, 8) + "。约 1 分钟后刷新游戏。");
+    } catch (error) {
+      showToast("发布失败：" + error.message);
+    }
   }
 
   function exportJson() {
@@ -794,6 +851,7 @@
     document.getElementById("btn-validate").addEventListener("click", showValidation);
     document.getElementById("btn-export-json").addEventListener("click", exportJson);
     document.getElementById("btn-save-data").addEventListener("click", saveDataFile);
+    dom.btnPublish.addEventListener("click", publishData);
     document.getElementById("btn-import").addEventListener("click", () => dom.fileImport.click());
     dom.fileImport.addEventListener("change", () => {
       const file = dom.fileImport.files && dom.fileImport.files[0];
@@ -832,6 +890,7 @@
     renderNav();
     bindEvents();
     loadDraft();
+    detectLocalServer();
     const hashSection = location.hash.replace("#", "");
     const firstSection = SECTIONS.some((section) => section.key === hashSection) ? hashSection : "PROLOGUE_QUESTIONS";
     renderSection(firstSection);
@@ -841,6 +900,8 @@
       setState: (next) => { state = deepClone(next); renderNav(); renderSection(currentSection); markDirty(); },
       buildDataJs,
       validateData,
+      publishData,
+      isServerMode: () => serverMode,
       section: renderSection
     };
   }
