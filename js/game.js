@@ -1735,6 +1735,7 @@
   }
 
   function stopExplore() {
+    updateChapterPlayerMotion(0, false);
     explore.active = false;
     explore.targetX = null;
     explore.pendingActionId = null;
@@ -1908,6 +1909,14 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     updateExplorePrompt();
   }
 
+  function updateChapterPlayerMotion(direction, sprinting) {
+    if (!dom.explorePlayer) return;
+    const moving = direction !== 0;
+    if (moving) dom.explorePlayer.classList.toggle("is-facing-left", direction < 0);
+    dom.explorePlayer.classList.toggle("is-running", moving);
+    dom.explorePlayer.classList.toggle("is-sprinting", moving && sprinting);
+  }
+
   function formatCountdown(seconds) {
     const safe = Math.max(0, Math.ceil(seconds));
     return String(Math.floor(safe / 60)).padStart(2, "0") + ":" + String(safe % 60).padStart(2, "0");
@@ -1968,6 +1977,8 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
       explore.lastTimestamp = timestamp;
       const modalOpen = dom.modalLayer && !dom.modalLayer.classList.contains("is-hidden");
       const canMove = !paused && !modalOpen && state && state.phase === "action";
+      let travelDirection = 0;
+      let travelSprinting = false;
 
       if (canMove) {
         let direction = 0;
@@ -1977,6 +1988,8 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
           explore.targetX = null;
           explore.pendingActionId = null;
           const speed = explore.keys.sprint ? 420 : 220;
+          travelDirection = direction;
+          travelSprinting = explore.keys.sprint;
           explore.x = clamp(explore.x + direction * speed * dt, 60, EXPLORE_WORLD_WIDTH - 60);
         } else if (explore.targetX !== null) {
           const difference = explore.targetX - explore.x;
@@ -1988,7 +2001,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
             if (pending) setTimeout(() => triggerExploreAction(pending), 120);
           } else {
             const speed = explore.keys.sprint ? 520 : 300;
-            explore.x = clamp(explore.x + Math.sign(difference) * Math.min(Math.abs(difference), speed * dt), 60, EXPLORE_WORLD_WIDTH - 60);
+            travelDirection = Math.sign(difference);
+            travelSprinting = explore.keys.sprint;
+            explore.x = clamp(explore.x + travelDirection * Math.min(Math.abs(difference), speed * dt), 60, EXPLORE_WORLD_WIDTH - 60);
           }
         }
 
@@ -2005,6 +2020,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
         }
       }
 
+      updateChapterPlayerMotion(travelDirection, travelSprinting);
       updateExploreCamera(dt, false);
       updateExplorePlayer();
       collectNearbyPickups();
@@ -2104,6 +2120,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     explore.active = true;
     explore.viewWidth = dom.exploreLayer.clientWidth || window.innerWidth;
     explore.cameraX = getExploreCameraTarget();
+    updateChapterPlayerMotion(0, false);
     renderExplorePickups();
     renderExploreMinimap();
     updateExplorePlayer();

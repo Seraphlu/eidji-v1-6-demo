@@ -6,7 +6,9 @@
   <meta name="theme-color" content="#141513">
   <link rel="icon" href="data:,">
   <title>额吉 · v1.7 地图跑动修订竖切 Demo</title>
-  <link rel="stylesheet" href="styles.css?v=1.7.7">
+  <link rel="stylesheet" href="styles.css?v=1.7.8">
+  <link rel="preload" as="image" href="assets/character/xiaowei-idle.webp?v=2">
+  <link rel="preload" as="image" href="assets/character/xiaowei-run-sheet.webp?v=2">
 </head>
 <body>
   <div id="film-grain" aria-hidden="true"></div>
@@ -93,7 +95,7 @@
           <div id="explore-layer" class="explore-layer is-hidden" aria-label="慈云庵探索区域">
             <div id="explore-hotspots" class="explore-hotspots"></div>
             <div id="explore-pickups" class="explore-pickups"></div>
-            <div id="explore-player" class="explore-player" aria-hidden="true"><span>苇</span></div>
+            <div id="explore-player" class="explore-player character-animated" aria-hidden="true"><div class="character-sprite" aria-hidden="true"></div></div>
             <div id="explore-prompt" class="explore-prompt"></div>
           </div>
           <div id="explore-controls" class="explore-controls is-hidden" aria-label="探索控制">
@@ -237,7 +239,7 @@
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script src="js/data.js?v=1.7.4"></script>
-  <script src="js/game.js?v=1.7.6"></script>
+  <script src="js/game.js?v=1.7.7"></script>
 </body>
 </html>
 

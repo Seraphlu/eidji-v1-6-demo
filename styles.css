@@ -3804,3 +3804,71 @@ button:focus-visible {
 
 
 
+
+
+/* Animated protagonist sprite */
+.explore-player.character-animated {
+  --player-height: clamp(7rem, 9vw, 8.6rem);
+  bottom: 17%;
+  width: calc(var(--player-height) * 0.723);
+  height: var(--player-height);
+  filter: drop-shadow(0 12px 12px rgba(8, 9, 7, 0.34));
+}
+
+.explore-player.character-animated::before {
+  display: none;
+  animation: none;
+}
+
+.explore-player.character-animated::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: auto;
+  right: auto;
+  bottom: 1.5%;
+  left: 50%;
+  width: 64%;
+  height: 6.5%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(5, 7, 5, 0.58), rgba(5, 7, 5, 0) 70%);
+  box-shadow: none;
+  transform: translateX(-50%);
+}
+
+.explore-player.character-animated .character-sprite {
+  position: absolute;
+  inset: 0;
+  background-image: url("assets/character/xiaowei-idle.webp?v=2");
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  transform: scaleX(1);
+  transform-origin: 50% 100%;
+  will-change: background-position, transform;
+}
+
+.explore-player.character-animated.is-running .character-sprite {
+  background-image: url("assets/character/xiaowei-run-sheet.webp?v=2");
+  background-size: 900% 100%;
+  animation: xiaowei-v17-run-cycle 0.63s steps(8, end) infinite;
+}
+
+.explore-player.character-animated.is-running.is-sprinting .character-sprite {
+  animation-duration: 0.39s;
+}
+
+.explore-player.character-animated.is-facing-left .character-sprite {
+  transform: scaleX(-1);
+}
+
+@keyframes xiaowei-v17-run-cycle {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; }
+}
+
+@media (max-width: 620px) {
+  .explore-player.character-animated {
+    --player-height: clamp(6rem, 20vw, 7.4rem);
+  }
+}
