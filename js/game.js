@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   "use strict";
 
   const DATA = window.EIDJI_DATA;
@@ -4457,8 +4457,13 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
   function debugRoute() {
     const params = new URLSearchParams(location.search);
     const demo = params.get("demo");
+    const start = params.get("start");
     if (!demo) {
       showTitle();
+      if (start === "new") startNewGame();
+      else if (start === "continue") continueGame();
+      else if (start === "archive") openArchive();
+      else if (start === "settings") openSettings();
       return;
     }
 
