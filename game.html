@@ -8,7 +8,7 @@
   <link rel="preload" href="assets/fonts/eidji-sans.woff2" as="font" type="font/woff2" crossorigin>
   <title>额吉 · 生存试玩</title>
   <link rel="preload" as="image" href="assets/prologue-questionnaire-room.jpg">
-  <link rel="stylesheet" href="styles.css?v=1.7.13">
+  <link rel="stylesheet" href="styles.css?v=1.7.14">
   <link rel="preload" as="image" href="assets/character/xiaowei-idle.webp?v=2">
   <link rel="preload" as="image" href="assets/character/xiaowei-run-sheet.webp?v=2">
 </head>
@@ -49,21 +49,24 @@
         <article class="paper-card prologue-paper">
           <header class="paper-header">
             <h2 id="prologue-title"><span>额吉</span><i>·</i><span>序章问卷</span></h2>
-            <p class="paper-note">在做出选择之前，请先听见自己的心</p>
+            <p class="paper-note">没有标准答案，按第一反应选就行。</p>
           </header>
 
-          <div id="prologue-question" class="prologue-question"></div>
-          <div id="prologue-options" class="prologue-options is-hidden" aria-hidden="true"></div>
+          <div class="prologue-progress" aria-label="答题进度">
+            <span id="prologue-progress-text">第 1 / 5 题</span>
+            <div class="progress-track"><span id="prologue-progress-bar"></span></div>
+          </div>
+
+          <div class="prologue-question-stage">
+            <div id="prologue-question" class="prologue-question"></div>
+            <div id="prologue-options" class="prologue-options"></div>
+          </div>
 
           <footer class="prologue-footer">
-            <div class="prologue-progress" aria-live="polite">
-              <span id="prologue-progress-text">尚未作答</span>
-              <div class="progress-track" aria-hidden="true"><span id="prologue-progress-bar"></span></div>
-            </div>
             <p class="prologue-footnote">你的回答，会被安静记下</p>
-            <button id="prologue-submit" class="prologue-seal" type="button" aria-label="落印并进入慈云庵" disabled>
+            <div class="prologue-seal" aria-hidden="true">
               <span>守</span><span>望</span><span>相</span><span>助</span>
-            </button>
+            </div>
           </footer>
         </article>
       </div>
@@ -247,8 +250,8 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
 
-  <script src="js/data.js?v=1.7.5"></script>
-  <script src="js/game.js?v=1.7.10"></script>
+  <script src="js/data.js?v=1.7.6"></script>
+  <script src="js/game.js?v=1.7.11"></script>
 </body>
 </html>
 

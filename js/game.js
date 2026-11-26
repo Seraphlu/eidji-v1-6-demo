@@ -1192,104 +1192,64 @@
     if (!state) return;
 
     const questions = DATA.PROLOGUE_QUESTIONS;
-    const questionIds = new Set(questions.map((question) => question.id));
     const optionIds = new Set(questions.flatMap((question) => question.options.map((option) => option.id)));
-    const answersById = new Map();
-    state.prologueAnswers.forEach((answer) => {
-      if (!answer || !questionIds.has(answer.questionId) || !optionIds.has(answer.optionId)) return;
-      answersById.set(answer.questionId, answer);
-    });
-    state.prologueAnswers = questions.map((question) => answersById.get(question.id)).filter(Boolean);
-    state.prologueIndex = state.prologueAnswers.length;
+    if (state.prologueAnswers.some((answer) => !answer || !optionIds.has(answer.optionId))) {
+      state.prologueAnswers = [];
+      state.prologueIndex = 0;
+      saveGame();
+    }
 
-    dom.prologueQuestion.innerHTML = "";
+    if (state.prologueIndex >= questions.length) {
+      finishPrologue();
+      return;
+    }
+
+    const question = questions[state.prologueIndex];
+    dom.prologueProgressText.textContent = "第 " + (state.prologueIndex + 1) + " / " + questions.length + " 题";
+    dom.prologueProgressBar.style.width = ((state.prologueIndex / questions.length) * 100) + "%";
+    dom.prologueQuestion.textContent = question.question;
     dom.prologueOptions.innerHTML = "";
 
-    questions.forEach((question) => {
-      const row = document.createElement("div");
-      row.className = "prologue-question-row";
-      row.dataset.questionId = question.id;
-
-      const text = document.createElement("p");
-      text.className = "prologue-question-text";
-      text.id = "prologue-question-" + question.id;
-      text.textContent = question.question;
-
-      const group = document.createElement("div");
-      group.className = "prologue-answer-group";
-      group.setAttribute("role", "group");
-      group.setAttribute("aria-labelledby", text.id);
-
-      const selected = answersById.get(question.id);
-      question.options.forEach((option) => {
-        const button = document.createElement("button");
-        const isSelected = Boolean(selected && selected.optionId === option.id);
-        button.type = "button";
-        button.className = "prologue-choice";
-        button.textContent = option.text;
-        button.dataset.optionId = option.id;
-        button.setAttribute("aria-pressed", String(isSelected));
-        button.setAttribute("aria-label", question.question + " 选择" + option.text);
-        button.addEventListener("click", () => {
-          const answer = {
-            questionId: question.id,
-            optionId: option.id,
-            text: option.text,
-            rational: Boolean(option.rational)
-          };
-          const existingIndex = state.prologueAnswers.findIndex((item) => item.questionId === question.id);
-          if (existingIndex >= 0) {
-            state.prologueAnswers[existingIndex] = answer;
-          } else {
-            state.prologueAnswers.push(answer);
-          }
-          const order = new Map(questions.map((item, index) => [item.id, index]));
-          state.prologueAnswers.sort((a, b) => order.get(a.questionId) - order.get(b.questionId));
-          state.prologueIndex = state.prologueAnswers.length;
-          Array.from(group.querySelectorAll("button")).forEach((item) => {
-            item.setAttribute("aria-pressed", String(item === button));
-          });
-          saveGame();
-          updatePrologueProgress();
+    const order = shuffle(question.options);
+    order.forEach((option, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "prologue-option";
+      const letter = document.createElement("span");
+      letter.className = "option-letter";
+      letter.textContent = String.fromCharCode(65 + index) + ".";
+      const label = document.createElement("span");
+      label.className = "option-label";
+      label.textContent = option.text;
+      button.appendChild(letter);
+      button.appendChild(label);
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        Array.from(dom.prologueOptions.querySelectorAll("button")).forEach((item) => {
+          item.disabled = true;
         });
-        group.appendChild(button);
+        state.prologueAnswers.push({
+          questionId: question.id,
+          optionId: option.id,
+          text: option.text,
+          rational: Boolean(option.rational)
+        });
+        state.prologueIndex += 1;
+        saveGame();
+        setTimeout(renderPrologue, 360);
       });
-
-      row.appendChild(text);
-      row.appendChild(group);
-      dom.prologueQuestion.appendChild(row);
+      dom.prologueOptions.appendChild(button);
     });
-
-    updatePrologueProgress();
-  }
-
-  function updatePrologueProgress() {
-    if (!state) return;
-    const total = DATA.PROLOGUE_QUESTIONS.length;
-    const answered = state.prologueAnswers.length;
-    const complete = answered >= total;
-    if (dom.prologueProgressText) {
-      dom.prologueProgressText.textContent = complete ? "五问答毕" : "已答 " + answered + " / " + total;
-    }
-    if (dom.prologueProgressBar) {
-      dom.prologueProgressBar.style.width = ((answered / total) * 100) + "%";
-    }
-    if (dom.prologueSubmit) {
-      dom.prologueSubmit.disabled = !complete;
-      dom.prologueSubmit.classList.toggle("is-ready", complete);
-      dom.prologueSubmit.setAttribute("aria-label", complete ? "落印并进入慈云庵" : "答完五问后可落印进入慈云庵");
-    }
   }
 
   function finishPrologue() {
-    if (!state || state.prologueAnswers.length !== DATA.PROLOGUE_QUESTIONS.length) return;
+    if (!state) return;
     state.checkpoint = "chapter";
     state.day = 1;
     state.phase = "story";
     if (state.prologueAnswers.length === DATA.PROLOGUE_QUESTIONS.length && state.prologueAnswers.every((answer) => answer.rational)) {
       addAchievement("honest");
     }
-    if (dom.prologueSubmit) dom.prologueSubmit.disabled = true;
     saveGame();
     fadeTo(() => {
       showScreen("chapter-screen");
@@ -4296,7 +4256,6 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     dom.prologueProgressBar = $("#prologue-progress-bar");
     dom.prologueQuestion = $("#prologue-question");
     dom.prologueOptions = $("#prologue-options");
-    dom.prologueSubmit = $("#prologue-submit");
     dom.btnPause = $("#btn-pause");
     dom.btnMap = $("#btn-map");
     dom.btnJournal = $("#btn-journal");
@@ -4371,7 +4330,6 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
   }
 
   function bindEvents() {
-    if (dom.prologueSubmit) dom.prologueSubmit.addEventListener("click", finishPrologue);
     dom.btnQuickPlay.addEventListener("click", startQuickPlay);
     dom.btnNewGame.addEventListener("click", startNewGame);
     dom.btnContinue.addEventListener("click", continueGame);
