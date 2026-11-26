@@ -385,7 +385,7 @@ button:focus-visible {
   min-width: 0;
   margin: 0;
   color: #241c15;
-  font-size: clamp(1.2rem, 1.85vw, 1.7rem);
+  font-size: clamp(1.16rem, 1.8vw, 1.62rem);
   font-weight: 500;
   line-height: 1.34;
   letter-spacing: 0.018em;
@@ -457,23 +457,22 @@ button:focus-visible {
 .prologue-footer {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(9rem, 14rem) minmax(12rem, 1fr) 5.1rem;
+  grid-template-columns: minmax(0, 1fr) 5.1rem;
   gap: clamp(0.8rem, 2vw, 1.6rem);
   align-items: center;
   margin-top: clamp(0.35rem, 0.9vw, 0.8rem);
 }
 
 .prologue-progress {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.6rem;
-  align-items: center;
-  margin: 0;
-  color: rgba(54, 41, 27, 0.68);
-  font-family: var(--sans);
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .prologue-progress .progress-track {
@@ -518,7 +517,7 @@ button:focus-visible {
   font-size: clamp(1rem, 1.45vw, 1.28rem);
   font-weight: 500;
   line-height: 1;
-  opacity: 0.38;
+  opacity: 0.62;
   transform: rotate(-3deg);
   transition: opacity 0.25s ease, color 0.25s ease, background 0.25s ease, transform 0.25s ease;
 }
@@ -657,14 +656,14 @@ button:focus-visible {
 
   .prologue-footnote {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 1;
     font-size: 0.96rem;
     text-align: left;
   }
 
   .prologue-seal {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     width: 4.2rem;
     height: 4.2rem;
     font-size: 0.9rem;
