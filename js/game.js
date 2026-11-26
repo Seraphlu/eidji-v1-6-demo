@@ -606,7 +606,7 @@
 
     openModal({
       eyebrow: "设置",
-      title: "让风雪轻一点",
+      title: "设置",
       body,
       dismissible: true,
       actions: [{ label: "关闭", primary: true, onClick: closeModal }]
@@ -678,8 +678,8 @@
     body.appendChild(achievementList);
 
     openModal({
-      eyebrow: "档案室",
-      title: "数字展陈占位",
+      eyebrow: "记录",
+      title: "还没有解锁新记录",
       body,
       dismissible: true,
       actions: [{ label: "关闭", primary: true, onClick: closeModal }]
@@ -688,9 +688,9 @@
 
   function openControlsHelp() {
     openModal({
-      eyebrow: "操作说明 · v1.5",
-      title: "场景化引导，不弹出教程面板",
-      body: "移动：A / D 或 ← / →\n交互：E、空格或鼠标左键\n地图：M\n手札：J\n暂停：Esc\n\n第一章：每天有 2 次行动。在慈云庵里走动，靠近亮起的地点后按 E 互动；手机可直接点击地点、用左右按钮移动。路上会散落干柴、炭笔和野菜，走近会自动拾取。帮陈婶需要按住锅底左右擦洗，祈祷需要按住凝神。点“回庵”可提前结束当天。\n\n黄昏时把食物拖给自己、小囡或石头。手札里可以查看技能、灶台配方、五名人物与植物图鉴。\n\n额吉体验：WASD / 方向键移动，也可直接点击亮起的小床。",
+      eyebrow: "操作",
+      title: "怎么玩",
+      body: "移动：A / D 或 ← / →\n交互：E、空格或鼠标左键\n地图：M\n记录：J\n暂停：Esc\n\n第一章：每天有 2 次行动。在慈云庵里走动，靠近亮起的地点后按 E 互动；手机可直接点击地点、用左右按钮移动。路上会散落干柴、炭笔和野菜，走近会自动拾取。帮陈婶需要按住锅底左右擦洗，祈祷需要按住凝神。点“回庵”可提前结束当天。\n\n黄昏时把食物拖给自己、小囡或石头。记录里可以查看技能、灶台配方、五名人物与植物图鉴。\n\n额吉体验：WASD / 方向键移动，也可直接点击亮起的小床。",
       dismissible: true,
       actions: [{ label: "知道了", primary: true, onClick: closeModal }]
     });
@@ -1039,11 +1039,11 @@
     renderTab("today");
 
     openModal({
-      eyebrow: "生存手札 · J",
-      title: "一页一页，走到北边",
+      eyebrow: "记录 · J",
+      title: "今天的记录",
       body,
       dismissible: true,
-      actions: [{ label: "合上手札", primary: true, onClick: closeModal }]
+      actions: [{ label: "关闭记录", primary: true, onClick: closeModal }]
     });
   }
 
@@ -1190,56 +1190,106 @@
 
   function renderPrologue() {
     if (!state) return;
-    if (state.prologueIndex >= DATA.PROLOGUE_QUESTIONS.length) {
-      finishPrologue();
-      return;
-    }
 
-    const question = DATA.PROLOGUE_QUESTIONS[state.prologueIndex];
-    dom.prologueProgressText.textContent = "第 " + (state.prologueIndex + 1) + " / " + DATA.PROLOGUE_QUESTIONS.length + " 题";
-    dom.prologueProgressBar.style.width = ((state.prologueIndex / DATA.PROLOGUE_QUESTIONS.length) * 100) + "%";
-    dom.prologueQuestion.textContent = question.question;
+    const questions = DATA.PROLOGUE_QUESTIONS;
+    const questionIds = new Set(questions.map((question) => question.id));
+    const optionIds = new Set(questions.flatMap((question) => question.options.map((option) => option.id)));
+    const answersById = new Map();
+    state.prologueAnswers.forEach((answer) => {
+      if (!answer || !questionIds.has(answer.questionId) || !optionIds.has(answer.optionId)) return;
+      answersById.set(answer.questionId, answer);
+    });
+    state.prologueAnswers = questions.map((question) => answersById.get(question.id)).filter(Boolean);
+    state.prologueIndex = state.prologueAnswers.length;
+
+    dom.prologueQuestion.innerHTML = "";
     dom.prologueOptions.innerHTML = "";
 
-    const order = shuffle(question.options);
-    order.forEach((option, index) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "prologue-option";
-      const letter = document.createElement("span");
-      letter.className = "option-letter";
-      letter.textContent = String.fromCharCode(65 + index) + ".";
-      const label = document.createElement("span");
-      label.className = "option-label";
-      label.textContent = option.text;
-      button.appendChild(letter);
-      button.appendChild(label);
-      button.addEventListener("click", () => {
-        if (button.disabled) return;
-        Array.from(dom.prologueOptions.querySelectorAll("button")).forEach((item) => {
-          item.disabled = true;
+    questions.forEach((question) => {
+      const row = document.createElement("div");
+      row.className = "prologue-question-row";
+      row.dataset.questionId = question.id;
+
+      const text = document.createElement("p");
+      text.className = "prologue-question-text";
+      text.id = "prologue-question-" + question.id;
+      text.textContent = question.question;
+
+      const group = document.createElement("div");
+      group.className = "prologue-answer-group";
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-labelledby", text.id);
+
+      const selected = answersById.get(question.id);
+      question.options.forEach((option) => {
+        const button = document.createElement("button");
+        const isSelected = Boolean(selected && selected.optionId === option.id);
+        button.type = "button";
+        button.className = "prologue-choice";
+        button.textContent = option.text;
+        button.dataset.optionId = option.id;
+        button.setAttribute("aria-pressed", String(isSelected));
+        button.setAttribute("aria-label", question.question + " 选择" + option.text);
+        button.addEventListener("click", () => {
+          const answer = {
+            questionId: question.id,
+            optionId: option.id,
+            text: option.text,
+            rational: Boolean(option.rational)
+          };
+          const existingIndex = state.prologueAnswers.findIndex((item) => item.questionId === question.id);
+          if (existingIndex >= 0) {
+            state.prologueAnswers[existingIndex] = answer;
+          } else {
+            state.prologueAnswers.push(answer);
+          }
+          const order = new Map(questions.map((item, index) => [item.id, index]));
+          state.prologueAnswers.sort((a, b) => order.get(a.questionId) - order.get(b.questionId));
+          state.prologueIndex = state.prologueAnswers.length;
+          Array.from(group.querySelectorAll("button")).forEach((item) => {
+            item.setAttribute("aria-pressed", String(item === button));
+          });
+          saveGame();
+          updatePrologueProgress();
         });
-        state.prologueAnswers.push({
-          questionId: question.id,
-          optionId: option.id,
-          text: option.text,
-          rational: Boolean(option.rational)
-        });
-        state.prologueIndex += 1;
-        saveGame();
-        setTimeout(renderPrologue, 360);
+        group.appendChild(button);
       });
-      dom.prologueOptions.appendChild(button);
+
+      row.appendChild(text);
+      row.appendChild(group);
+      dom.prologueQuestion.appendChild(row);
     });
+
+    updatePrologueProgress();
+  }
+
+  function updatePrologueProgress() {
+    if (!state) return;
+    const total = DATA.PROLOGUE_QUESTIONS.length;
+    const answered = state.prologueAnswers.length;
+    const complete = answered >= total;
+    if (dom.prologueProgressText) {
+      dom.prologueProgressText.textContent = complete ? "五问答毕" : "已答 " + answered + " / " + total;
+    }
+    if (dom.prologueProgressBar) {
+      dom.prologueProgressBar.style.width = ((answered / total) * 100) + "%";
+    }
+    if (dom.prologueSubmit) {
+      dom.prologueSubmit.disabled = !complete;
+      dom.prologueSubmit.classList.toggle("is-ready", complete);
+      dom.prologueSubmit.setAttribute("aria-label", complete ? "落印并进入慈云庵" : "答完五问后可落印进入慈云庵");
+    }
   }
 
   function finishPrologue() {
+    if (!state || state.prologueAnswers.length !== DATA.PROLOGUE_QUESTIONS.length) return;
     state.checkpoint = "chapter";
     state.day = 1;
     state.phase = "story";
     if (state.prologueAnswers.length === DATA.PROLOGUE_QUESTIONS.length && state.prologueAnswers.every((answer) => answer.rational)) {
       addAchievement("honest");
     }
+    if (dom.prologueSubmit) dom.prologueSubmit.disabled = true;
     saveGame();
     fadeTo(() => {
       showScreen("chapter-screen");
@@ -2749,7 +2799,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
 
     openModal({
       eyebrow: "黄昏 · 分食",
-      title: "你手里的每一口，都是一次选择",
+      title: "今晚怎么分",
       body,
       dismissible: false,
       actions: [{
@@ -4246,6 +4296,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     dom.prologueProgressBar = $("#prologue-progress-bar");
     dom.prologueQuestion = $("#prologue-question");
     dom.prologueOptions = $("#prologue-options");
+    dom.prologueSubmit = $("#prologue-submit");
     dom.btnPause = $("#btn-pause");
     dom.btnMap = $("#btn-map");
     dom.btnJournal = $("#btn-journal");
@@ -4320,6 +4371,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
   }
 
   function bindEvents() {
+    if (dom.prologueSubmit) dom.prologueSubmit.addEventListener("click", finishPrologue);
     dom.btnQuickPlay.addEventListener("click", startQuickPlay);
     dom.btnNewGame.addEventListener("click", startNewGame);
     dom.btnContinue.addEventListener("click", continueGame);

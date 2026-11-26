@@ -1,4 +1,12 @@
-﻿:root {
+@font-face {
+  font-family: "Eidji Sans";
+  src: url("assets/fonts/eidji-sans.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
   --bg: #121310;
   --bg-soft: #1a1b17;
   --ink: #e7dfcf;
@@ -15,10 +23,10 @@
   --safe: #78836d;
   --danger: #a85b50;
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
-  --serif: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", Georgia, serif;
-  --sans: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
-  --hand: "KaiTi", "STKaiti", "FangSong", "Songti SC", serif;
-  --type: "Courier New", "Noto Sans Mono CJK SC", monospace;
+  --serif: "Eidji Sans", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --sans: "Eidji Sans", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --hand: "Eidji Sans", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --type: "Eidji Sans", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   --archive-paper: #dfd4bf;
   --archive-paper-light: #eee7d8;
   --archive-ink: #2b2821;
@@ -118,9 +126,9 @@ button:focus-visible {
 .kicker {
   margin: 0;
   color: var(--ink-dim);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -166,10 +174,10 @@ button:focus-visible {
 .title-copy h1 {
   margin: 0.15em 0 0.08em;
   font-family: var(--serif);
-  font-size: clamp(7rem, 15vw, 13rem);
-  font-weight: 500;
-  line-height: 0.82;
-  letter-spacing: -0.08em;
+  font-size: clamp(6rem, 12vw, 11rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
   text-shadow: 0 8px 45px rgba(0, 0, 0, 0.35);
 }
 
@@ -178,16 +186,16 @@ button:focus-visible {
   margin: 2.5rem 0 1.6rem;
   color: #cbc3b3;
   font-family: var(--serif);
-  font-size: clamp(1.15rem, 1.85vw, 1.6rem);
-  line-height: 1.9;
-  letter-spacing: 0.03em;
+  font-size: clamp(1.05rem, 1.55vw, 1.35rem);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
 }
 
 .title-meta {
   margin: 0;
   color: var(--ink-faint);
-  font-size: 0.76rem;
-  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  letter-spacing: 0.025em;
 }
 
 .title-menu {
@@ -253,8 +261,8 @@ button:focus-visible {
 
 /* Prologue */
 
-#prologue-screen {
-  background: #0b0c0a;
+.prologue-screen {
+  background: #080907;
 }
 
 #prologue-screen.is-active {
@@ -262,159 +270,424 @@ button:focus-visible {
   place-items: center;
 }
 
-.prologue-wrap {
-  width: min(840px, calc(100% - 2rem));
-  max-height: calc(100vh - 3rem);
-  overflow: auto;
-  padding: 1rem;
-}
-
-.paper-card {
-  position: relative;
-  overflow: hidden;
-  padding: clamp(1.6rem, 4vw, 3.8rem);
-  border: 1px solid #8d836f;
+.prologue-room {
+  position: absolute;
+  inset: 0;
   background:
-    linear-gradient(rgba(45, 41, 32, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(45, 41, 32, 0.025) 1px, transparent 1px),
-    var(--paper);
-  background-size: 22px 22px, 22px 22px, auto;
-  color: var(--paper-ink);
-  box-shadow: var(--shadow);
+    linear-gradient(rgba(7, 8, 6, 0.08), rgba(7, 8, 6, 0.16)),
+    url("assets/prologue-questionnaire-room.jpg") center / cover no-repeat;
+  filter: saturate(0.88) brightness(0.88);
+  transform: scale(1.012);
 }
 
-.paper-card::before,
-.paper-card::after {
+.prologue-screen::after {
   content: "";
   position: absolute;
+  inset: 0;
   pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 44%, transparent 36%, rgba(4, 5, 4, 0.34) 100%),
+    linear-gradient(90deg, rgba(3, 4, 3, 0.24), transparent 16%, transparent 84%, rgba(3, 4, 3, 0.24));
 }
 
-.paper-card::before {
-  inset: 10px;
-  border: 1px solid rgba(61, 52, 38, 0.18);
+.prologue-wrap {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 64vw);
+  max-height: calc(100svh - 1.5rem);
+  overflow: auto;
+  padding: 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(74, 53, 33, 0.35) transparent;
 }
 
-.paper-card::after {
-  width: 180px;
-  height: 180px;
-  right: -90px;
-  bottom: -95px;
-  border: 2px solid rgba(111, 59, 43, 0.22);
-  border-radius: 50%;
+.prologue-paper {
+  position: relative;
+  overflow: visible;
+  padding: clamp(1.1rem, 2.2vw, 2.25rem) clamp(1.3rem, 3.4vw, 3.3rem) clamp(0.8rem, 1.8vw, 1.6rem);
+  border: 0;
+  background: transparent;
+  color: #2d241a;
+  box-shadow: none;
 }
 
-.paper-stamp {
-  position: absolute;
-  top: 1.4rem;
-  right: 1.6rem;
-  padding: 0.6rem 0.55rem;
-  border: 2px solid rgba(143, 70, 50, 0.55);
-  color: rgba(143, 70, 50, 0.7);
-  font-family: var(--serif);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  line-height: 1.25;
-  text-align: center;
-  transform: rotate(3deg);
+.prologue-paper::before,
+.prologue-paper::after {
+  display: none;
 }
 
 .paper-header {
   position: relative;
-  padding-right: 5rem;
-}
-
-.paper-header .eyebrow {
-  color: #6f6657;
+  padding-right: 0;
+  text-align: center;
 }
 
 .paper-header h2 {
-  margin: 0.36rem 0 0.7rem;
-  font-family: var(--serif);
-  font-size: clamp(1.7rem, 4vw, 2.7rem);
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  margin: 0;
+  color: #211a13;
+  font-family: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", var(--serif);
+  font-size: clamp(2.65rem, 5vw, 4.3rem);
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.08;
+  text-shadow: 0 1px 0 rgba(255, 250, 231, 0.4);
+}
+
+.paper-header h2 i {
+  display: inline-block;
+  margin: 0 0.28em;
+  font-style: normal;
+  font-weight: 400;
+  transform: translateY(-0.09em);
 }
 
 .paper-note {
+  margin: 0.5rem 0 0;
+  color: #35291e;
+  font-family: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", var(--serif);
+  font-size: clamp(1.12rem, 1.8vw, 1.52rem);
+  line-height: 1.45;
+  letter-spacing: 0.08em;
+}
+
+.paper-header::after {
+  content: "";
+  display: block;
+  width: min(760px, 100%);
+  height: 1px;
+  margin: clamp(0.65rem, 1.2vw, 1rem) auto 0;
+  background: linear-gradient(90deg, transparent, rgba(66, 49, 32, 0.46) 12%, rgba(66, 49, 32, 0.46) 88%, transparent);
+}
+
+.prologue-question {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  margin-top: clamp(0.4rem, 0.9vw, 0.75rem);
+  font-family: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", var(--serif);
+}
+
+.prologue-question-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(0.9rem, 2.4vw, 2.3rem);
+  align-items: center;
+  min-height: clamp(4.1rem, 7.2vh, 5.15rem);
+  border-bottom: 1px solid rgba(78, 58, 36, 0.27);
+}
+
+.prologue-question-row:last-child {
+  border-bottom: 0;
+}
+
+.prologue-question-text {
+  min-width: 0;
   margin: 0;
-  color: #655e51;
-  font-size: 0.86rem;
-  line-height: 1.8;
+  color: #241c15;
+  font-size: clamp(1.2rem, 1.85vw, 1.7rem);
+  font-weight: 500;
+  line-height: 1.34;
+  letter-spacing: 0.018em;
+}
+
+.prologue-answer-group {
+  display: grid;
+  grid-template-columns: repeat(2, clamp(3rem, 4vw, 3.8rem));
+  gap: clamp(0.45rem, 1vw, 0.8rem);
+}
+
+.prologue-choice {
+  position: relative;
+  min-height: clamp(2.8rem, 4.4vw, 3.35rem);
+  padding: 0.22rem 0.35rem 0.28rem;
+  border: 1px solid rgba(69, 51, 32, 0.42);
+  border-radius: 1px;
+  background:
+    linear-gradient(135deg, rgba(255, 249, 222, 0.58), rgba(201, 179, 139, 0.52)),
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(95, 71, 40, 0.035) 5px 6px);
+  color: #2e251b;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 249, 225, 0.18),
+    0 1px 1px rgba(53, 38, 22, 0.2);
+  cursor: pointer;
+  font-family: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", var(--serif);
+  font-size: clamp(1.34rem, 2.1vw, 1.78rem);
+  font-weight: 500;
+  line-height: 1;
+  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.prologue-choice:hover {
+  border-color: rgba(72, 46, 27, 0.76);
+  background:
+    linear-gradient(135deg, rgba(255, 250, 226, 0.74), rgba(204, 181, 139, 0.66)),
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(95, 71, 40, 0.04) 5px 6px);
+  transform: translateY(-1px);
+}
+
+.prologue-choice[aria-pressed="true"] {
+  border-color: rgba(102, 50, 32, 0.8);
+  background: rgba(61, 44, 29, 0.9);
+  color: #f0dfbc;
+  box-shadow:
+    inset 0 0 0 2px rgba(220, 195, 150, 0.14),
+    inset 0 4px 14px rgba(10, 8, 5, 0.22),
+    0 0 0 2px rgba(112, 65, 42, 0.12);
+  transform: translateY(1px);
+}
+
+.prologue-choice[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0.28rem;
+  right: 0.28rem;
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 50%;
+  background: #9e4c34;
+  box-shadow: 0 0 0 1px rgba(244, 221, 181, 0.5);
+}
+
+.prologue-choice:focus-visible {
+  outline: 2px solid rgba(78, 48, 28, 0.9);
+  outline-offset: 3px;
+}
+
+.prologue-footer {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) minmax(12rem, 1fr) 5.1rem;
+  gap: clamp(0.8rem, 2vw, 1.6rem);
+  align-items: center;
+  margin-top: clamp(0.35rem, 0.9vw, 0.8rem);
 }
 
 .prologue-progress {
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 1rem;
+  gap: 0.6rem;
   align-items: center;
-  margin: 2.2rem 0 1.8rem;
-  color: #6f6657;
-  font-size: 0.78rem;
+  margin: 0;
+  color: rgba(54, 41, 27, 0.68);
+  font-family: var(--sans);
+  font-size: 0.66rem;
   letter-spacing: 0.08em;
 }
 
-.progress-track {
-  height: 3px;
+.prologue-progress .progress-track {
+  height: 2px;
   overflow: hidden;
-  background: rgba(45, 40, 31, 0.14);
+  background: rgba(61, 45, 29, 0.16);
 }
 
-.progress-track > span {
+.prologue-progress .progress-track > span {
   display: block;
   width: 0;
   height: 100%;
-  background: #5b554a;
-  transition: width 0.4s ease;
+  background: #746051;
+  transition: width 0.3s ease;
 }
 
-.prologue-question {
-  position: relative;
-  min-height: 6rem;
-  font-family: var(--serif);
-  font-size: clamp(1.18rem, 2.4vw, 1.55rem);
-  line-height: 1.85;
+.prologue-footnote {
+  margin: 0;
+  color: #2d2218;
+  font-family: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", var(--serif);
+  font-size: clamp(1rem, 1.5vw, 1.32rem);
+  letter-spacing: 0.085em;
+  text-align: center;
 }
 
-.prologue-options {
-  position: relative;
+.prologue-seal {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 1.3rem;
+  grid-template-columns: repeat(2, 1fr);
+  place-items: center;
+  width: 5.1rem;
+  height: 5.1rem;
+  padding: 0.34rem;
+  border: 2px solid rgba(126, 55, 37, 0.78);
+  border-radius: 2px;
+  background: rgba(218, 196, 157, 0.12);
+  color: rgba(126, 55, 37, 0.78);
+  box-shadow:
+    inset 0 0 0 3px rgba(218, 196, 157, 0.46),
+    inset 0 0 0 4px rgba(126, 55, 37, 0.25);
+  cursor: not-allowed;
+  font-family: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", var(--serif);
+  font-size: clamp(1rem, 1.45vw, 1.28rem);
+  font-weight: 500;
+  line-height: 1;
+  opacity: 0.38;
+  transform: rotate(-3deg);
+  transition: opacity 0.25s ease, color 0.25s ease, background 0.25s ease, transform 0.25s ease;
 }
 
-.prologue-option {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  width: 100%;
-  padding: 0.9rem 1rem;
-  border: 1px solid rgba(45, 40, 31, 0.22);
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #312f29;
+.prologue-seal span:nth-child(1),
+.prologue-seal span:nth-child(2) {
+  align-self: end;
+}
+
+.prologue-seal span:nth-child(3),
+.prologue-seal span:nth-child(4) {
+  align-self: start;
+}
+
+.prologue-seal.is-ready {
+  opacity: 1;
   cursor: pointer;
-  text-align: left;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  animation: seal-ready 1.4s ease-in-out infinite;
 }
 
-.prologue-option:hover {
-  border-color: rgba(45, 40, 31, 0.55);
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateX(3px);
+.prologue-seal.is-ready:hover {
+  background: rgba(126, 55, 37, 0.12);
+  color: #873d2a;
+  transform: rotate(-3deg) scale(1.04);
 }
 
-.option-letter {
-  flex: 0 0 1.5rem;
-  color: #7a7060;
-  font-family: var(--serif);
-  font-style: italic;
+.prologue-seal:focus-visible {
+  outline: 2px solid rgba(98, 45, 31, 0.85);
+  outline-offset: 4px;
 }
 
-.option-label {
-  font-size: 0.98rem;
-  line-height: 1.55;
+@keyframes seal-ready {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 3px rgba(218, 196, 157, 0.46),
+      inset 0 0 0 4px rgba(126, 55, 37, 0.25),
+      0 0 0 0 rgba(126, 55, 37, 0);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 3px rgba(218, 196, 157, 0.46),
+      inset 0 0 0 4px rgba(126, 55, 37, 0.25),
+      0 0 0 6px rgba(126, 55, 37, 0.08);
+  }
+}
+
+@media (max-width: 900px) {
+  .prologue-wrap {
+    width: min(78vw, 760px);
+  }
+
+  .prologue-paper {
+    padding-right: clamp(1rem, 4vw, 2.2rem);
+    padding-left: clamp(1rem, 4vw, 2.2rem);
+  }
+
+  .prologue-question-text {
+    font-size: clamp(1.08rem, 2.4vw, 1.38rem);
+  }
+}
+
+@media (max-width: 720px) {
+  .prologue-wrap {
+    width: calc(100% - 1.2rem);
+    max-height: calc(100svh - 0.8rem);
+    padding: 0.35rem;
+  }
+
+  .prologue-room {
+    filter: saturate(0.76) brightness(0.64) blur(1px);
+    transform: scale(1.04);
+  }
+
+  .prologue-paper {
+    padding: 1.15rem 1rem 0.95rem;
+    border: 1px solid rgba(92, 69, 42, 0.38);
+    background:
+      linear-gradient(rgba(226, 213, 187, 0.93), rgba(217, 200, 169, 0.92)),
+      repeating-linear-gradient(3deg, transparent 0 7px, rgba(91, 67, 40, 0.035) 7px 8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
+  }
+
+  .prologue-paper::before {
+    display: block;
+    inset: 0.36rem;
+    border: 1px solid rgba(83, 60, 36, 0.17);
+  }
+
+  .paper-header h2 {
+    font-size: clamp(2.1rem, 9vw, 3rem);
+  }
+
+  .paper-note {
+    margin-top: 0.28rem;
+    font-size: clamp(0.95rem, 4vw, 1.15rem);
+    letter-spacing: 0.045em;
+  }
+
+  .paper-header::after {
+    margin-top: 0.62rem;
+  }
+
+  .prologue-question-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.66rem 0;
+  }
+
+  .prologue-question-text {
+    font-size: clamp(1rem, 4.2vw, 1.22rem);
+    line-height: 1.42;
+  }
+
+  .prologue-answer-group {
+    grid-template-columns: repeat(2, 3.2rem);
+    justify-self: end;
+  }
+
+  .prologue-choice {
+    min-height: 2.55rem;
+    font-size: 1.24rem;
+  }
+
+  .prologue-footer {
+    grid-template-columns: minmax(0, 1fr) 4.2rem;
+    gap: 0.65rem;
+    margin-top: 0.35rem;
+  }
+
+  .prologue-progress {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .prologue-footnote {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 0.96rem;
+    text-align: left;
+  }
+
+  .prologue-seal {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 4.2rem;
+    height: 4.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .prologue-wrap {
+    width: calc(100% - 0.6rem);
+  }
+
+  .prologue-paper {
+    padding-right: 0.8rem;
+    padding-left: 0.8rem;
+  }
+
+  .paper-header h2 {
+    font-size: 2rem;
+  }
+
+  .prologue-answer-group {
+    grid-template-columns: repeat(2, 2.9rem);
+  }
 }
 
 /* Chapter HUD */
@@ -2752,7 +3025,7 @@ button:focus-visible {
 }
 
 .title-copy::before {
-  content: "江南 · 丁丑卷";
+  content: none;
   display: inline-block;
   margin-bottom: 1rem;
   padding: 0.2rem 0;
@@ -2764,7 +3037,7 @@ button:focus-visible {
 }
 
 .title-copy::after {
-  content: "三千孤儿入内蒙";
+  content: none;
   position: absolute;
   top: 0.1rem;
   left: min(18.5rem, 34vw);
@@ -2797,7 +3070,7 @@ button:focus-visible {
 }
 
 .title-menu::before {
-  content: "目 录";
+  content: "菜单";
   margin-bottom: 0.85rem;
   color: rgba(218, 200, 173, 0.42);
   font-family: var(--hand);
@@ -2807,7 +3080,7 @@ button:focus-visible {
 
 .title-menu .menu-button {
   display: grid;
-  grid-template-columns: 1.8rem minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.65rem;
   align-items: center;
   min-height: 2.7rem;
@@ -2818,12 +3091,13 @@ button:focus-visible {
   color: rgba(231, 223, 207, 0.82);
   font-family: var(--hand);
   font-size: 1rem;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   counter-increment: archive-menu;
 }
 
 .title-menu .menu-button::before {
-  content: "0" counter(archive-menu);
+  content: none;
   color: rgba(172, 91, 67, 0.78);
   font-family: var(--type);
   font-size: 0.6rem;

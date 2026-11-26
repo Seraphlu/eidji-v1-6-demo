@@ -1,12 +1,14 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#141513">
   <link rel="icon" href="data:,">
-  <title>额吉 · v1.7 地图跑动修订竖切 Demo</title>
-  <link rel="stylesheet" href="styles.css?v=1.7.8">
+  <link rel="preload" href="assets/fonts/eidji-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <title>额吉 · 生存试玩</title>
+  <link rel="preload" as="image" href="assets/prologue-questionnaire-room.jpg">
+  <link rel="stylesheet" href="styles.css?v=1.7.12">
   <link rel="preload" as="image" href="assets/character/xiaowei-idle.webp?v=2">
   <link rel="preload" as="image" href="assets/character/xiaowei-run-sheet.webp?v=2">
 </head>
@@ -18,16 +20,16 @@
     <section id="title-screen" class="screen is-active" aria-labelledby="title-heading">
       <div class="title-grid">
         <div class="title-copy">
-          <p class="kicker">生存叙事 · v1.7 地图跑动修订</p>
+          <p class="kicker">剧情生存试玩 · 第 1–7 天</p>
           <h1 id="title-heading">额吉</h1>
-          <p class="title-subtitle">在苦难的挣扎与忐忑的期盼中<br>找到家的方向。</p>
-          <p class="title-meta">可玩竖切 v1.7 · 横向跑图 / 镜头跟随 / 限时回庵</p>
+          <p class="title-subtitle">大雪里，小苇被送到慈云庵。<br>她只有七天时间，证明自己能留下来。</p>
+          <p class="title-meta">横版探索 · 资源分配 · 多结局试玩</p>
         </div>
         <nav class="title-menu" aria-label="主菜单">
-          <button id="btn-quick-play" class="menu-button menu-button-primary" type="button">立即试玩第一章</button>
-          <button id="btn-new-game" class="menu-button" type="button">完整开始（含序章）</button>
-          <button id="btn-continue" class="menu-button" type="button">继续上次</button>
-          <button id="btn-archive" class="menu-button" type="button">档案室</button>
+          <button id="btn-quick-play" class="menu-button menu-button-primary" type="button">直接进入第一天</button>
+          <button id="btn-new-game" class="menu-button" type="button">从序章开始</button>
+          <button id="btn-continue" class="menu-button" type="button">继续游戏</button>
+          <button id="btn-archive" class="menu-button" type="button">查看记录</button>
           <button id="btn-settings" class="menu-button" type="button">设置</button>
           <p id="save-meta" class="save-meta">尚无存档</p>
         </nav>
@@ -36,27 +38,34 @@
         <span>键盘：A / D 移动 · Shift 快跑</span>
         <span>交互：E / 鼠标左键</span>
         <span>地图：M</span>
-        <span>手札：J</span>
+        <span>记录：J</span>
         <span>暂停：Esc</span>
       </footer>
     </section>
 
-    <section id="prologue-screen" class="screen" aria-labelledby="prologue-title">
+    <section id="prologue-screen" class="screen prologue-screen" aria-labelledby="prologue-title">
+      <div class="prologue-room" aria-hidden="true"></div>
       <div class="prologue-wrap">
-        <div class="paper-card">
-          <div class="paper-stamp">慈云庵<br>临时登记</div>
+        <article class="paper-card prologue-paper">
           <header class="paper-header">
-            <p class="eyebrow">序章 · 不可能选项</p>
-            <h2 id="prologue-title">一份没有标准答案的问卷</h2>
-            <p class="paper-note">作答后不会出现评价。请按你真实的第一反应选择。</p>
+            <h2 id="prologue-title"><span>额吉</span><i>·</i><span>序章问卷</span></h2>
+            <p class="paper-note">在做出选择之前，请先听见自己的心</p>
           </header>
-          <div class="prologue-progress" aria-label="答题进度">
-            <span id="prologue-progress-text">第 1 / 5 题</span>
-            <div class="progress-track"><span id="prologue-progress-bar"></span></div>
-          </div>
+
           <div id="prologue-question" class="prologue-question"></div>
-          <div id="prologue-options" class="prologue-options"></div>
-        </div>
+          <div id="prologue-options" class="prologue-options is-hidden" aria-hidden="true"></div>
+
+          <footer class="prologue-footer">
+            <div class="prologue-progress" aria-live="polite">
+              <span id="prologue-progress-text">尚未作答</span>
+              <div class="progress-track" aria-hidden="true"><span id="prologue-progress-bar"></span></div>
+            </div>
+            <p class="prologue-footnote">你的回答，会被安静记下</p>
+            <button id="prologue-submit" class="prologue-seal" type="button" aria-label="落印并进入慈云庵" disabled>
+              <span>守</span><span>望</span><span>相</span><span>助</span>
+            </button>
+          </footer>
+        </article>
       </div>
     </section>
 
@@ -71,7 +80,7 @@
         <div id="stats-bar" class="stats-bar" aria-label="生存状态"></div>
         <div class="hud-tools" aria-label="游戏工具">
           <button id="btn-map" class="text-button" type="button" aria-label="打开地图" aria-keyshortcuts="M">地图 M</button>
-          <button id="btn-journal" class="text-button" type="button" aria-label="打开生存手札" aria-keyshortcuts="J">手札 J</button>
+          <button id="btn-journal" class="text-button" type="button" aria-label="打开生存记录" aria-keyshortcuts="J">记录 J</button>
           <button id="btn-help" class="text-button" type="button">操作</button>
         </div>
       </header>
@@ -176,7 +185,7 @@
         </header>
         <div id="eidji-help" class="eidji-help">WASD / 方向键移动，靠近亮起的小床。也可以直接点击小床。</div>
         <div id="eidji-start" class="eidji-start">
-          <p class="eyebrow">短暂成为她</p>
+          <p class="eyebrow">这一夜</p>
           <h2>28 张小床，围成一个圆。</h2>
           <p>喂奶、把尿、盖被、哄睡、拍嗝。<br>你不可能让所有孩子安静下来。<br>萨仁会接手最闹的那一个，但大多数时候，你仍是最后醒着的人。</p>
           <button id="btn-start-night" class="menu-button menu-button-primary" type="button">吹灭油灯</button>
@@ -200,15 +209,15 @@
         </div>
         <div id="light-ending" class="light-ending is-hidden" aria-live="polite">
           <div class="light-points" aria-hidden="true"></div>
-          <p class="ending-kicker">光的传承</p>
-          <h2>你是第 3001 位接过这束光的人。</h2>
+          <p class="ending-kicker">后来</p>
+          <h2>后来，小苇也成了别人的额吉。</h2>
           <div id="ending-faces" class="ending-faces" aria-label="被记住的人"></div>
-          <p class="ending-quote">牺牲与奉献从未远去，<br>它只是换了一个时代的样子，<br>等着下一束光。</p>
+          <p class="ending-quote">她没有成为什么伟大的人。<br>她只是把当年收到的那点照顾，<br>又给了另一个孩子。</p>
           <div class="modern-lights" aria-label="当代奉献者剪影占位">
             <span>支教教师</span><span>驻村书记</span><span>援藏医生</span><span>消防员</span><span>救援者</span>
           </div>
           <div class="ending-buttons">
-            <button id="btn-ending-archive" class="menu-button" type="button">查看档案室</button>
+            <button id="btn-ending-archive" class="menu-button" type="button">查看记录</button>
             <button id="btn-ending-title" class="menu-button" type="button">回到标题</button>
           </div>
         </div>
@@ -229,7 +238,7 @@
   <div id="pause-overlay" class="pause-overlay is-hidden">
     <div class="pause-card">
       <p class="eyebrow">暂停</p>
-      <h2>风雪停在门外。</h2>
+      <h2>雪停了。</h2>
       <button id="btn-resume" class="menu-button menu-button-primary" type="button">继续</button>
       <button id="btn-pause-settings" class="menu-button" type="button">设置</button>
       <button id="btn-pause-title" class="menu-button" type="button">回到标题</button>
@@ -238,8 +247,8 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
 
-  <script src="js/data.js?v=1.7.4"></script>
-  <script src="js/game.js?v=1.7.7"></script>
+  <script src="js/data.js?v=1.7.5"></script>
+  <script src="js/game.js?v=1.7.10"></script>
 </body>
 </html>
 

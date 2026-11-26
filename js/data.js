@@ -4,118 +4,93 @@
   const PROLOGUE_QUESTIONS = [
   {
     "id": "q1",
-    "question": "闹饥荒的年月，你自己每天只有半碗稀粥。福利院问：愿意无偿收养一个和你毫无血缘的孩子吗？",
+    "question": "如果你身边有人快要饿死，你愿意把最后一口食物分给他吗？",
     "options": [
       {
-        "id": "q1a",
-        "text": "愿意，多双筷子而已",
+        "id": "q1-yes",
+        "text": "是",
         "rational": false
       },
       {
-        "id": "q1b",
-        "text": "等日子好点再说",
-        "rational": false
-      },
-      {
-        "id": "q1c",
-        "text": "养不活自己，怎么养别人",
+        "id": "q1-no",
+        "text": "否",
         "rational": true
       }
     ],
-    "realAnswer": "草原牧民骑马、赶勒勒车、步行几百里，争先恐后领养——有的人家自己也只剩炒米和奶豆腐。",
+    "realAnswer": "真实的饥荒里，很多牧民自己只剩炒米和奶豆腐，仍然接过南方的孩子。",
     "fact": "1960—1963 年，约三千名南方孤儿被内蒙古家庭接纳。"
   },
   {
     "id": "q2",
-    "question": "如果收养，你觉得自己一个人最多能同时照顾几个不懂事的孩子？",
+    "question": "为了救活一个孩子，你愿意付出自己最珍贵的东西吗？",
     "options": [
       {
-        "id": "q2a",
-        "text": "1 个",
+        "id": "q2-yes",
+        "text": "是",
+        "rational": false
+      },
+      {
+        "id": "q2-no",
+        "text": "否",
         "rational": true
-      },
-      {
-        "id": "q2b",
-        "text": "2—3 个",
-        "rational": false
-      },
-      {
-        "id": "q2c",
-        "text": "5 个以上",
-        "rational": false
       }
     ],
-    "realAnswer": "都贵玛，19 岁，一个人照顾 28 个孩子。",
+    "realAnswer": "都贵玛十九岁，一个人接下二十八个孩子，没有先问自己够不够。",
     "fact": "她把小床摆成圆形，自己睡在中间。"
   },
   {
     "id": "q3",
-    "question": "照顾孩子的代价是：一年以上，每天晚上都不能睡一个完整的觉。你能坚持多久？",
+    "question": "陌生人的孩子，也值得被同样对待吗？",
     "options": [
       {
-        "id": "q3a",
-        "text": "一个星期",
+        "id": "q3-yes",
+        "text": "是",
         "rational": false
       },
       {
-        "id": "q3b",
-        "text": "一个月",
-        "rational": false
-      },
-      {
-        "id": "q3c",
-        "text": "应该没人能坚持一年吧",
+        "id": "q3-no",
+        "text": "否",
         "rational": true
       }
     ],
-    "realAnswer": "都贵玛一年多没睡过一个整觉。哪个孩子哼一声，她立刻坐起来。",
-    "fact": "这样的夜晚，她过了四百多个。"
+    "realAnswer": "草原上的额吉们把别人的孩子抱进毡房，一样喂、一样暖。",
+    "fact": "孩子们从江南来到草原，从此有了新的家。"
   },
   {
     "id": "q4",
-    "question": "你刚成年，没结过婚，没带过孩子。现在要把几十个孩子的命交到你手上，你敢接吗？",
+    "question": "如果奉献会让你痛苦，你还会选择善良吗？",
     "options": [
       {
-        "id": "q4a",
-        "text": "不敢，这是人命",
+        "id": "q4-yes",
+        "text": "是",
+        "rational": false
+      },
+      {
+        "id": "q4-no",
+        "text": "否",
         "rational": true
-      },
-      {
-        "id": "q4b",
-        "text": "我可以帮忙打下手",
-        "rational": false
-      },
-      {
-        "id": "q4c",
-        "text": "总得有人接，我来",
-        "rational": false
       }
     ],
-    "realAnswer": "都贵玛说：“看到这么多孩子没了父母……我有义务照顾好这些孩子。”",
-    "fact": "1961 年，19 岁的她成为保育员。"
+    "realAnswer": "她当然怕。可孩子哭的时候，她还是把手伸了过去。",
+    "fact": "这样的夜晚，她过了四百多个。"
   },
   {
     "id": "q5",
-    "question": "你千辛万苦把孩子养活了、养亲了，然后要亲手把他们一个个送给别人，经历不知道多少次离别。你还愿意开始吗？",
+    "question": "多年以后，你会把这份善意继续传给别人吗？",
     "options": [
       {
-        "id": "q5a",
-        "text": "不愿意，我不舍得分离",
+        "id": "q5-yes",
+        "text": "是",
+        "rational": false
+      },
+      {
+        "id": "q5-no",
+        "text": "否",
         "rational": true
-      },
-      {
-        "id": "q5b",
-        "text": "不知道，我不敢想",
-        "rational": false
-      },
-      {
-        "id": "q5c",
-        "text": "只要孩子能活得好",
-        "rational": false
       }
     ],
-    "realAnswer": "都贵玛经历了 28 次离别，每次都偷偷骑马跟到新家附近张望，确认孩子笑了才离开。",
-    "fact": "孩子养壮一个，就被领养走一个。"
+    "realAnswer": "孩子们一个个被领走，她把牵挂留给自己，把活路给他们。",
+    "fact": "都贵玛经历了 28 次离别，每次都要确认孩子过得好。"
   }
 ];
 
