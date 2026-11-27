@@ -19,6 +19,11 @@
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const params = new URLSearchParams(window.location.search);
   const saveMeta = document.querySelector(".save-meta");
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+  function setThemeColor(color) {
+    if (themeMeta) themeMeta.setAttribute("content", color);
+  }
 
   function readSaveSummary() {
     try {
@@ -1491,6 +1496,7 @@
 
     document.body.classList.remove("is-dark-scene");
     document.body.classList.add("has-begun", "is-finished");
+    setThemeColor("#e5dccb");
     gameTitle.classList.add("is-active");
     gameTitle.setAttribute("aria-hidden", "false");
 
@@ -1537,6 +1543,7 @@
     gameTitle.classList.remove("is-active");
     gameTitle.setAttribute("aria-hidden", "true");
     document.body.classList.remove("is-finished", "is-dark-scene");
+    setThemeColor("#121310");
     window.scrollTo(0, 0);
     window.requestAnimationFrame(startAnimation);
   }

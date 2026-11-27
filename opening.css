@@ -1778,3 +1778,417 @@ kbd {
 .opening-page.is-snapshot .opening-canvas {
   transition: none;
 }
+
+/* Bright finale: hold on the spring key art, then reveal the directory. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.opening-page.is-finished .opening-canvas {
+  opacity: 1;
+}
+
+.game-title {
+  --title-rail: clamp(19rem, 26vw, 25rem);
+  align-items: center;
+  justify-content: center;
+  color: #2a2219;
+  background: #ded6c7;
+  transition:
+    opacity 900ms var(--ease-in-out),
+    visibility 900ms linear;
+}
+
+.game-title::before {
+  content: none;
+}
+
+.game-title::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: var(--title-rail);
+  border-left: 1px solid rgba(76, 58, 39, 0.14);
+  background:
+    linear-gradient(90deg, rgba(222, 211, 190, 0.16), transparent 9%),
+    linear-gradient(145deg, #f5eee2 0%, #e9deca 58%, #e3d6bf 100%);
+  pointer-events: none;
+}
+
+.title-backdrop,
+.title-veil {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: var(--title-rail);
+  pointer-events: none;
+}
+
+.title-backdrop {
+  z-index: 0;
+  background: #ded6c7 url("assets/title/cover-spring.webp") center center / cover no-repeat;
+  transform: scale(1.018);
+  transition: transform 9s linear;
+}
+
+.game-title.is-active .title-backdrop {
+  transform: scale(1);
+}
+
+.title-veil {
+  z-index: 1;
+  background:
+    linear-gradient(90deg, transparent 0 58%, rgba(244, 237, 224, 0.06) 76%, rgba(244, 237, 224, 0.22) 100%),
+    linear-gradient(180deg, rgba(249, 244, 234, 0.06) 0 18%, transparent 48% 72%, rgba(35, 30, 23, 0.12) 100%);
+}
+
+.game-title .title-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  width: auto;
+  margin: 0;
+  padding: clamp(1.2rem, 2.2vw, 2.5rem);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.game-title .title-menu {
+  display: grid;
+  gap: 0;
+  align-content: center;
+  width: min(20rem, calc(var(--title-rail) - 2.5rem));
+  min-width: 0;
+  padding: 1.3rem 1.35rem 1.1rem;
+  border: 1px solid rgba(76, 58, 39, 0.28);
+  background:
+    linear-gradient(145deg, rgba(248, 242, 230, 0.94), rgba(231, 220, 199, 0.9)),
+    radial-gradient(ellipse at 100% 0, rgba(255, 253, 245, 0.56), transparent 52%);
+  box-shadow:
+    0 24px 72px rgba(52, 43, 32, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(11px) saturate(0.88);
+}
+
+.game-title .title-menu::before {
+  content: "目 录";
+  margin: 0 0 0.65rem;
+  padding: 0 0 0.68rem;
+  border-bottom: 1px solid rgba(79, 60, 41, 0.22);
+  color: rgba(68, 52, 37, 0.7);
+  font-family: var(--hand);
+  font-size: 0.74rem;
+  letter-spacing: 0.34em;
+}
+
+.game-title .menu-button {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  min-height: 2.95rem;
+  padding: 0.62rem 0.24rem;
+  border-bottom: 1px solid rgba(80, 61, 42, 0.16);
+  background: transparent;
+  color: #2c251c;
+  font-family: var(--hand);
+  font-size: clamp(1.02rem, 1.22vw, 1.18rem);
+  letter-spacing: 0.08em;
+  text-shadow: none;
+}
+
+.game-title .menu-button::before {
+  content: none;
+}
+
+.game-title .menu-button:hover {
+  border-color: rgba(126, 74, 45, 0.38);
+  background: linear-gradient(90deg, rgba(154, 89, 53, 0.16), transparent 88%);
+  color: #1e1812;
+  transform: translateX(4px);
+}
+
+.game-title .menu-button-primary {
+  border-bottom-color: rgba(145, 74, 43, 0.38);
+  background: linear-gradient(90deg, rgba(156, 80, 47, 0.2), rgba(156, 80, 47, 0.025) 88%);
+  color: #2a1d15;
+}
+
+.game-title .menu-button-primary:hover {
+  background: linear-gradient(90deg, rgba(156, 80, 47, 0.28), rgba(156, 80, 47, 0.035) 88%);
+}
+
+.game-title .menu-button:focus-visible,
+.game-title .title-replay:focus-visible {
+  outline: 2px solid rgba(123, 58, 35, 0.88);
+  outline-offset: 4px;
+}
+
+.game-title .save-meta {
+  margin-top: 0.66rem;
+  color: rgba(54, 43, 31, 0.62);
+  font-family: var(--hand);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.game-title.is-active .title-menu {
+  animation: titleDirectoryOut 780ms 650ms var(--ease-expo) both;
+}
+
+.game-title.is-active .title-menu::before {
+  animation-delay: 820ms;
+}
+
+.game-title.is-active .menu-button:nth-of-type(1) { animation-delay: 880ms; }
+.game-title.is-active .menu-button:nth-of-type(2) { animation-delay: 940ms; }
+.game-title.is-active .menu-button:nth-of-type(3) { animation-delay: 1000ms; }
+.game-title.is-active .menu-button:nth-of-type(4) { animation-delay: 1060ms; }
+.game-title.is-active .menu-button:nth-of-type(5) { animation-delay: 1120ms; }
+.game-title.is-active .save-meta { animation-delay: 1180ms; }
+
+.game-title .title-footer {
+  z-index: 4;
+  right: 5.2vw;
+  bottom: 2.4vh;
+  left: 4vw;
+  max-width: 66vw;
+  color: rgba(42, 34, 25, 0.68);
+  font-family: var(--hand);
+  font-size: 0.7rem;
+  text-shadow: 0 1px 9px rgba(255, 251, 242, 0.86);
+}
+
+.game-title .title-replay {
+  border-color: rgba(45, 35, 25, 0.48);
+  color: #32281d;
+  background: rgba(247, 240, 226, 0.42);
+}
+
+.game-title .title-replay:hover {
+  background: rgba(247, 240, 226, 0.76);
+}
+
+@keyframes titleDirectoryOut {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.965);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (max-width: 900px) and (min-width: 761px) {
+  .game-title .title-grid {
+    padding: 1rem;
+  }
+
+  .game-title .title-menu {
+    width: min(19rem, calc(var(--title-rail) - 1.6rem));
+  }
+}
+
+@media (max-width: 760px) {
+  .game-title {
+    --title-rail: 0px;
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .game-title::after {
+    top: 60%;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    border-top: 1px solid rgba(76, 58, 39, 0.14);
+    border-left: 0;
+    background:
+      linear-gradient(180deg, rgba(222, 211, 190, 0.14), transparent 7%),
+      linear-gradient(145deg, #f5eee2 0%, #e9deca 58%, #e3d6bf 100%);
+  }
+
+  .title-backdrop,
+  .title-veil {
+    right: 0;
+    bottom: 40%;
+  }
+
+  .title-backdrop {
+    background-position: 50% 32%;
+  }
+
+  .title-veil {
+    background:
+      linear-gradient(180deg, transparent 0 24%, rgba(244, 237, 224, 0.08) 46%, rgba(244, 237, 224, 0.46) 70%, rgba(238, 230, 216, 0.88) 100%);
+  }
+
+  .game-title .title-grid {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 100%;
+    padding: max(0.7rem, env(safe-area-inset-top)) 0.7rem max(0.7rem, env(safe-area-inset-bottom));
+    align-items: flex-end;
+    justify-content: stretch;
+  }
+
+  .game-title .title-menu {
+    width: 100%;
+    min-width: 0;
+    padding: 0.9rem 1rem 0.78rem;
+    background:
+      linear-gradient(160deg, rgba(248, 242, 230, 0.97), rgba(230, 219, 198, 0.94)),
+      radial-gradient(ellipse at 100% 0, rgba(255, 253, 245, 0.52), transparent 52%);
+    box-shadow:
+      0 -12px 48px rgba(52, 43, 32, 0.16),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.38);
+  }
+
+  .game-title .title-menu::before {
+    margin-bottom: 0.38rem;
+    padding-bottom: 0.44rem;
+    font-size: 0.66rem;
+  }
+
+  .game-title .menu-button {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+    min-height: 2.62rem;
+    padding: 0.42rem 0.18rem;
+    font-size: clamp(0.98rem, 4.2vw, 1.08rem);
+    letter-spacing: 0.06em;
+  }
+
+  .game-title .save-meta {
+    margin-top: 0.42rem;
+    font-size: 0.64rem;
+  }
+
+  .game-title .title-footer,
+  .game-title .title-replay {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  .game-title .title-menu {
+    padding: 0.58rem 0.82rem 0.5rem;
+  }
+
+  .game-title .title-menu::before {
+    margin-bottom: 0.2rem;
+    padding-bottom: 0.26rem;
+    font-size: 0.6rem;
+  }
+
+  .game-title .menu-button {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+    min-height: 2.04rem;
+    padding: 0.22rem 0.14rem;
+    font-size: clamp(0.87rem, 3.8vw, 0.96rem);
+    line-height: 1.2;
+  }
+
+  .game-title .save-meta {
+    margin-top: 0.2rem;
+    font-size: 0.58rem;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 560px) and (orientation: landscape) {
+  .game-title {
+    --title-rail: 40vw;
+  }
+
+  .game-title::after {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: var(--title-rail);
+    border-top: 0;
+    border-left: 1px solid rgba(76, 58, 39, 0.14);
+    background:
+      linear-gradient(90deg, rgba(222, 211, 190, 0.16), transparent 9%),
+      linear-gradient(145deg, #f5eee2 0%, #e9deca 58%, #e3d6bf 100%);
+  }
+
+  .title-backdrop,
+  .title-veil {
+    right: var(--title-rail);
+    bottom: 0;
+  }
+
+  .game-title .title-grid {
+    position: absolute;
+    padding: 0.65rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .title-backdrop {
+    background-position: 50% center;
+  }
+
+  .title-veil {
+    background:
+      linear-gradient(90deg, transparent 0 45%, rgba(244, 237, 224, 0.14) 68%, rgba(244, 237, 224, 0.56) 100%);
+  }
+
+  .game-title .title-menu {
+    width: calc(var(--title-rail) - 1.3rem);
+    min-width: 0;
+    padding: 0.52rem 0.78rem 0.42rem;
+  }
+
+  .game-title .title-menu::before {
+    margin-bottom: 0.16rem;
+    padding-bottom: 0.24rem;
+    font-size: 0.58rem;
+  }
+
+  .game-title .menu-button {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+    min-height: 1.98rem;
+    padding: 0.2rem 0.12rem;
+    font-size: clamp(0.84rem, 2.25vw, 0.94rem);
+    line-height: 1.15;
+  }
+
+  .game-title .save-meta {
+    margin-top: 0.18rem;
+    font-size: 0.56rem;
+    line-height: 1.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-backdrop {
+    transform: none;
+    transition: none;
+  }
+
+  .game-title.is-active .title-menu {
+    animation: none;
+    clip-path: none;
+  }
+}

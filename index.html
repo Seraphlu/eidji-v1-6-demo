@@ -15,7 +15,8 @@
   <link rel="preload" as="image" href="assets/opening/06-doves.jpg">
   <link rel="preload" as="image" href="assets/opening/07-rebirth.jpg">
   <link rel="preload" as="image" href="assets/opening/08-hope.png">
-  <link rel="stylesheet" href="opening.css?v=9">
+  <link rel="preload" as="image" href="assets/title/cover-spring.webp">
+  <link rel="stylesheet" href="opening.css?v=13">
   <noscript><style>.overture,.scene,.opening-header,.opening-footer{display:none!important}.game-title{position:relative!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;min-height:100svh}</style></noscript>
 </head>
 <body class="opening-page">
@@ -33,13 +34,10 @@
     <canvas id="opening-canvas" class="opening-canvas" role="img" aria-label="无字开场动画：雪原中倒下的孩子、废墟中的红光、天光下的身影、飞过佛像的白鸽，最终化为纸上新生的光。"></canvas>
 
     <section id="title-interface" class="game-title" aria-labelledby="title-heading">
+      <div class="title-backdrop" aria-hidden="true"></div>
+      <div class="title-veil" aria-hidden="true"></div>
       <div class="title-grid">
-        <div class="title-copy">
-          <p class="kicker">生存叙事 · v1.7 片头整合版</p>
-          <h1 id="title-heading">额吉</h1>
-          <p class="title-subtitle">在苦难的挣扎与忐忑的期盼中<br>找到家的方向。</p>
-          <p class="title-meta">可玩竖切 v1.7 · 横向跑图 / 镜头跟随 / 限时回庵</p>
-        </div>
+        <h1 id="title-heading" class="sr-only">额吉</h1>
 
         <nav class="title-menu" aria-label="主菜单">
           <a class="menu-button menu-button-primary" href="game.html?demo=survival&amp;day=1">立即试玩第一章</a>
@@ -63,6 +61,6 @@
       </section>
   </main>
 
-  <script src="opening.js?v=9"></script>
+  <script src="opening.js?v=13"></script>
 </body>
 </html>
