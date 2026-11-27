@@ -16,7 +16,7 @@
   <link rel="preload" as="image" href="assets/opening/07-rebirth.jpg">
   <link rel="preload" as="image" href="assets/opening/08-hope.png">
   <link rel="preload" as="image" href="assets/title/cover-spring.webp">
-  <link rel="stylesheet" href="opening.css?v=13">
+  <link rel="stylesheet" href="opening.css?v=14">
   <noscript><style>.overture,.scene,.opening-header,.opening-footer{display:none!important}.game-title{position:relative!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;min-height:100svh}</style></noscript>
 </head>
 <body class="opening-page">
@@ -25,7 +25,10 @@
   <div class="screen-vignette" aria-hidden="true"></div>
 
   <header class="opening-header">
-    <button id="skip-intro" class="text-button" type="button" aria-label="跳过序章"><span aria-hidden="true">»</span></button>
+    <div class="opening-header__actions">
+      <button id="audio-toggle" class="audio-toggle" type="button" aria-label="播放片头音乐" aria-pressed="false"><span aria-hidden="true">♪</span></button>
+      <button id="skip-intro" class="text-button" type="button" aria-label="跳过序章"><span aria-hidden="true">»</span></button>
+    </div>
   </header>
 
   <main id="opening-stage" class="opening-stage" aria-label="额吉开场动画">
@@ -61,6 +64,7 @@
       </section>
   </main>
 
-  <script src="opening.js?v=13"></script>
+  <audio id="opening-audio" src="assets/audio/opening-theme.mp3" preload="auto" loop playsinline></audio>
+  <script src="opening.js?v=14"></script>
 </body>
 </html>

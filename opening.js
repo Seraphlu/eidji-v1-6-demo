@@ -20,10 +20,72 @@
   const params = new URLSearchParams(window.location.search);
   const saveMeta = document.querySelector(".save-meta");
   const themeMeta = document.querySelector('meta[name="theme-color"]');
+  const openingAudio = document.getElementById("opening-audio");
+  const audioToggle = document.getElementById("audio-toggle");
+  const AUDIO_LEVEL = 0.42;
 
   function setThemeColor(color) {
     if (themeMeta) themeMeta.setAttribute("content", color);
   }
+
+  function syncAudioToggle() {
+    if (!audioToggle || !openingAudio) return;
+    const audible = !openingAudio.paused && !openingAudio.muted;
+    audioToggle.classList.toggle("is-playing", audible);
+    audioToggle.classList.toggle("is-muted", !audible);
+    audioToggle.setAttribute("aria-pressed", String(audible));
+    audioToggle.setAttribute("aria-label", audible ? "关闭片头音乐" : "播放片头音乐");
+  }
+
+  function removeAudioGestureStart() {
+    window.removeEventListener("pointerdown", startAudioFromGesture, true);
+    window.removeEventListener("keydown", startAudioFromGesture, true);
+  }
+
+  async function playOpeningAudio() {
+    if (!openingAudio) return false;
+    openingAudio.volume = AUDIO_LEVEL;
+    try {
+      await openingAudio.play();
+      removeAudioGestureStart();
+      syncAudioToggle();
+      return true;
+    } catch {
+      syncAudioToggle();
+      return false;
+    }
+  }
+
+  function startAudioFromGesture(event) {
+    if (audioToggle && event.target instanceof Node && audioToggle.contains(event.target)) return;
+    void playOpeningAudio();
+  }
+
+  function toggleOpeningAudio() {
+    if (!openingAudio) return;
+    if (openingAudio.paused) {
+      openingAudio.muted = false;
+      void playOpeningAudio();
+      return;
+    }
+    openingAudio.muted = !openingAudio.muted;
+    syncAudioToggle();
+  }
+
+  if (openingAudio) {
+    openingAudio.volume = AUDIO_LEVEL;
+    openingAudio.addEventListener("play", syncAudioToggle);
+    openingAudio.addEventListener("pause", syncAudioToggle);
+    openingAudio.addEventListener("volumechange", syncAudioToggle);
+    openingAudio.addEventListener("error", () => {
+      if (audioToggle) audioToggle.hidden = true;
+    });
+    audioToggle?.addEventListener("click", toggleOpeningAudio);
+    window.addEventListener("pointerdown", startAudioFromGesture, true);
+    window.addEventListener("keydown", startAudioFromGesture, true);
+    void playOpeningAudio();
+  }
+  syncAudioToggle();
 
   function readSaveSummary() {
     try {
