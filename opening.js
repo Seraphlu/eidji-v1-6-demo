@@ -22,6 +22,8 @@
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const openingAudio = document.getElementById("opening-audio");
   const audioToggle = document.getElementById("audio-toggle");
+  const gameShell = document.getElementById("game-shell");
+  const gameFrame = document.getElementById("game-frame");
   const AUDIO_LEVEL = 0.42;
 
   function setThemeColor(color) {
@@ -72,6 +74,30 @@
     syncAudioToggle();
   }
 
+  function enterGame(url) {
+    if (!gameShell || !gameFrame) {
+      window.location.assign(url);
+      return;
+    }
+    if (openingAudio && openingAudio.paused) void playOpeningAudio();
+    gameShell.hidden = false;
+    gameShell.setAttribute("aria-hidden", "false");
+    gameShell.setAttribute("aria-busy", "true");
+    document.body.classList.add("is-game-mode");
+    gameFrame.addEventListener("load", () => {
+      gameShell.setAttribute("aria-busy", "false");
+      gameFrame.focus({ preventScroll: true });
+    }, { once: true });
+    gameFrame.src = url;
+  }
+
+  function handleGameLink(event) {
+    if (event.defaultPrevented) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    enterGame(event.currentTarget.href);
+  }
+
   if (openingAudio) {
     openingAudio.volume = AUDIO_LEVEL;
     openingAudio.addEventListener("play", syncAudioToggle);
@@ -86,6 +112,9 @@
     void playOpeningAudio();
   }
   syncAudioToggle();
+  document.querySelectorAll(".title-menu a[href]").forEach((link) => {
+    link.addEventListener("click", handleGameLink);
+  });
 
   function readSaveSummary() {
     try {

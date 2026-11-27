@@ -16,7 +16,7 @@
   <link rel="preload" as="image" href="assets/opening/07-rebirth.jpg">
   <link rel="preload" as="image" href="assets/opening/08-hope.png">
   <link rel="preload" as="image" href="assets/title/cover-spring.webp">
-  <link rel="stylesheet" href="opening.css?v=14">
+  <link rel="stylesheet" href="opening.css?v=15">
   <noscript><style>.overture,.scene,.opening-header,.opening-footer{display:none!important}.game-title{position:relative!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;min-height:100svh}</style></noscript>
 </head>
 <body class="opening-page">
@@ -43,7 +43,7 @@
         <h1 id="title-heading" class="sr-only">额吉</h1>
 
         <nav class="title-menu" aria-label="主菜单">
-          <a class="menu-button menu-button-primary" href="game.html?demo=survival&amp;day=1">立即试玩第一章</a>
+          <a class="menu-button menu-button-primary" href="game.html?demo=chapter&amp;day=1&amp;phase=action">立即试玩第一章</a>
           <a class="menu-button" href="game.html?start=new">完整开始（含序章）</a>
           <a class="menu-button" href="game.html?start=continue">继续上次</a>
           <a class="menu-button" href="game.html?start=archive">档案室</a>
@@ -64,7 +64,10 @@
       </section>
   </main>
 
+  <div id="game-shell" class="game-shell" hidden aria-hidden="true">
+    <iframe id="game-frame" title="额吉游戏画面" src="about:blank" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+  </div>
   <audio id="opening-audio" src="assets/audio/opening-theme.mp3" preload="auto" loop playsinline></audio>
-  <script src="opening.js?v=14"></script>
+  <script src="opening.js?v=15"></script>
 </body>
 </html>
