@@ -203,7 +203,7 @@
   function getDailyRumor() {
     if (!state || !DATA.DAILY_RUMORS.length) return "";
     const index = (state.day - 1 + Math.floor(state.kindness / 3) + DATA.DAILY_RUMORS.length) % DATA.DAILY_RUMORS.length;
-    return "今日风声：" + DATA.DAILY_RUMORS[index];
+    return "今日风声：" + personalizeText(DATA.DAILY_RUMORS[index]);
   }
 
   function getLocation(id) {
@@ -275,6 +275,7 @@
     return {
       version: 2,
       checkpoint: "prologue",
+      playerName: "",
       prologueIndex: 0,
       prologueAnswers: [],
       day: 1,
@@ -314,6 +315,18 @@
       startedAt: Date.now(),
       savedAt: Date.now()
     };
+  }
+
+  function getPlayerName() {
+    const name = state ? String(state.playerName || "").trim().replace(/\s+/g, " ") : "";
+    return name || "小苇";
+  }
+
+  function personalizeText(text) {
+    const name = getPlayerName();
+    return String(text == null ? "" : text)
+      .replace(/小苇/g, name)
+      .replace(/“   ”/g, "“" + name + "”");
   }
 
   function archiveUnlocked(id) {
@@ -446,7 +459,8 @@
             ? "终章"
             : "序章问卷";
     const date = new Date(saved.savedAt || Date.now());
-    return "存档：" + checkpoint + " · " + date.toLocaleString("zh-CN", { hour12: false });
+    const playerName = saved.playerName ? saved.playerName + " · " : "";
+    return "存档：" + playerName + checkpoint + " · " + date.toLocaleString("zh-CN", { hour12: false });
   }
 
   function updateTitleMeta() {
@@ -483,6 +497,7 @@
     if (id !== "eidji-screen" && eidji.active) {
       stopNightLoop();
     }
+    updatePlayerNameUI();
   }
 
   function fadeTo(callback, hold) {
@@ -982,9 +997,9 @@
           head.innerHTML = "<span class=\"npc-mark\">" + profile.mark + "</span><div><strong>" + profile.name + "</strong><small>" + profile.role + "</small></div><em>" + level.name + "</em>";
           const truth = document.createElement("p");
           truth.className = "npc-truth";
-          truth.textContent = points >= 3 ? profile.truth : "有些事，他还没有说出口。";
+          truth.textContent = points >= 3 ? personalizeText(profile.truth) : "有些事，他还没有说出口。";
           const routine = document.createElement("p");
-          routine.textContent = profile.routine;
+          routine.textContent = personalizeText(profile.routine);
           card.appendChild(head);
           card.appendChild(truth);
           card.appendChild(routine);
@@ -1347,6 +1362,80 @@
     return figure;
   }
 
+  function openRegistrationEvent(event) {
+    const body = document.createElement("div");
+    body.className = "day1-registration";
+
+    const copy = document.createElement("p");
+    copy.className = "day1-registration-copy";
+    copy.textContent = personalizeText(event.text);
+    body.appendChild(copy);
+
+    const nameLine = document.createElement("p");
+    nameLine.className = "day1-name-line";
+    nameLine.appendChild(document.createTextNode("你写下了自己的名字“"));
+    const input = document.createElement("input");
+    input.id = "event-player-name-input";
+    input.className = "event-name-input";
+    input.type = "text";
+    input.maxLength = 12;
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input.placeholder = "写下名字";
+    input.setAttribute("aria-label", "你的名字");
+    input.value = state.playerName || "";
+    const field = document.createElement("span");
+    field.className = "day1-name-field";
+    field.appendChild(input);
+    field.appendChild(document.createTextNode("”。"));
+    nameLine.appendChild(field);
+    body.appendChild(nameLine);
+
+    const hint = document.createElement("p");
+    hint.className = "event-name-hint";
+    hint.textContent = "这个名字会留在慈云庵的登记纸上，也会出现在之后的手记与结局里。";
+    body.appendChild(hint);
+
+    openModal({
+      eyebrow: "第 1 天 · " + event.weather,
+      title: event.title,
+      body,
+      actions: [{
+        label: "开始行动",
+        primary: true,
+        disabled: !String(state.playerName || "").trim(),
+        onClick: () => {
+          const entered = input.value.trim().replace(/\s+/g, " ").slice(0, 12);
+          if (!entered) {
+            input.focus();
+            return;
+          }
+          state.playerName = entered;
+          saveGame();
+          updatePlayerNameUI();
+          updateTitleMeta();
+          closeModal();
+          showActionPhase();
+          showToast("登记纸上写下了：" + getPlayerName());
+        }
+      }],
+      onMount: (bodyNode, actionNode) => {
+        const startButton = actionNode.querySelector("button");
+        const syncNameState = () => {
+          if (startButton) startButton.disabled = !input.value.trim();
+        };
+        input.addEventListener("input", syncNameState);
+        input.addEventListener("keydown", (eventObject) => {
+          if (eventObject.key !== "Enter") return;
+          eventObject.preventDefault();
+          if (startButton && !startButton.disabled) startButton.click();
+        });
+        syncNameState();
+        requestAnimationFrame(() => input.focus());
+      }
+    });
+  }
+
   function openDayEvent(event) {
     state.flags["event-seen-" + state.day] = true;
     saveGame();
@@ -1354,7 +1443,7 @@
       openModal({
         eyebrow: "第 25 天 · 黄昏",
         title: event.title,
-        body: event.text,
+        body: personalizeText(event.text),
         actions: [{
           label: "走进风雪",
           primary: true,
@@ -1376,13 +1465,18 @@
       openModal({
         eyebrow: "第 " + state.day + " 天 · " + event.weather,
         title: event.title,
-        body: event.text + "\n\n" + event.note,
+        body: personalizeText(event.text + "\n\n" + event.note),
         actions
       });
       return;
     }
 
-    let eventBody = event.text + "\n\n" + event.note;
+    if (state.day === 1) {
+      openRegistrationEvent(event);
+      return;
+    }
+
+    let eventBody = personalizeText(event.text + "\n\n" + event.note);
     if (state.day === 18 && state.bonds.shitou >= 5) {
       eventBody += "\n\n他留给你的手札还压在枕下。最后一页写着：替我看看火车。回来讲给我听。";
     }
@@ -1594,8 +1688,8 @@
       dom.weatherForecast.textContent = "明日预兆 · " + (nextEvent ? nextEvent.weather : "风雪未定");
     }
     if (dom.rumorText) dom.rumorText.textContent = getDailyRumor();
-    dom.chapterCaption.textContent = getChapterCaption(event);
-    dom.journalText.textContent = event ? event.note : "";
+    dom.chapterCaption.textContent = personalizeText(getChapterCaption(event));
+    dom.journalText.textContent = event ? personalizeText(event.note) : "";
     if (state.phase === "action" && !state.flags["whisper-day-" + state.day]) {
       state.flags["whisper-day-" + state.day] = true;
       setTimeout(() => {
@@ -4256,6 +4350,9 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     dom.prologueProgressBar = $("#prologue-progress-bar");
     dom.prologueQuestion = $("#prologue-question");
     dom.prologueOptions = $("#prologue-options");
+    dom.gameTitlePlayerName = $("#game-title-player-name");
+    dom.journalPlayerHeading = $("#journal-player-heading");
+    dom.endingPlayerHeading = $("#ending-player-heading");
     dom.btnPause = $("#btn-pause");
     dom.btnMap = $("#btn-map");
     dom.btnJournal = $("#btn-journal");
@@ -4327,6 +4424,13 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     dom.endingFaces = $("#ending-faces");
     dom.btnEndingArchive = $("#btn-ending-archive");
     dom.btnEndingTitle = $("#btn-ending-title");
+  }
+
+  function updatePlayerNameUI() {
+    const name = getPlayerName();
+    if (dom.gameTitlePlayerName) dom.gameTitlePlayerName.textContent = name;
+    if (dom.journalPlayerHeading) dom.journalPlayerHeading.textContent = name + "的今天";
+    if (dom.endingPlayerHeading) dom.endingPlayerHeading.textContent = "后来，" + name + "也成了别人的额吉。";
   }
 
   function bindEvents() {
@@ -4528,6 +4632,7 @@ if (dom.chapterActions) dom.chapterActions.style.display = "none";
     cacheDom();
     bindEvents();
     preloadArt();
+    updatePlayerNameUI();
     updateTitleMeta();
     debugRoute();
     window.__EIDJI_DEMO__ = {

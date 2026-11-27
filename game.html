@@ -8,7 +8,7 @@
   <link rel="preload" href="assets/fonts/eidji-sans.woff2" as="font" type="font/woff2" crossorigin>
   <title>额吉 · 生存试玩</title>
   <link rel="preload" as="image" href="assets/prologue-questionnaire-room.jpg">
-  <link rel="stylesheet" href="styles.css?v=1.7.14">
+  <link rel="stylesheet" href="styles.css?v=1.7.15">
   <link rel="preload" as="image" href="assets/character/xiaowei-idle.webp?v=2">
   <link rel="preload" as="image" href="assets/character/xiaowei-run-sheet.webp?v=2">
 </head>
@@ -22,7 +22,7 @@
         <div class="title-copy">
           <p class="kicker">剧情生存试玩 · 第 1–7 天</p>
           <h1 id="title-heading">额吉</h1>
-          <p class="title-subtitle">大雪里，小苇被送到慈云庵。<br>她只有七天时间，证明自己能留下来。</p>
+          <p class="title-subtitle">大雪里，<span id="game-title-player-name">小苇</span>被送到慈云庵。<br>她只有七天时间，证明自己能留下来。</p>
           <p class="title-meta">横版探索 · 资源分配 · 多结局试玩</p>
         </div>
         <nav class="title-menu" aria-label="主菜单">
@@ -121,7 +121,7 @@
 
         <aside class="journal-panel" aria-label="当日记录">
           <p class="eyebrow">第一章 · 慈云庵</p>
-          <h3>小苇的今天</h3>
+          <h3 id="journal-player-heading">小苇的今天</h3>
           <p id="day-weather" class="journal-weather"></p>
           <p id="weather-forecast" class="journal-forecast"></p>
           <div id="status-strip" class="status-strip" aria-label="状态词条"></div>
@@ -213,7 +213,7 @@
         <div id="light-ending" class="light-ending is-hidden" aria-live="polite">
           <div class="light-points" aria-hidden="true"></div>
           <p class="ending-kicker">后来</p>
-          <h2>后来，小苇也成了别人的额吉。</h2>
+          <h2 id="ending-player-heading">后来，小苇也成了别人的额吉。</h2>
           <div id="ending-faces" class="ending-faces" aria-label="被记住的人"></div>
           <p class="ending-quote">她没有成为什么伟大的人。<br>她只是把当年收到的那点照顾，<br>又给了另一个孩子。</p>
           <div class="modern-lights" aria-label="当代奉献者剪影占位">
@@ -251,7 +251,7 @@
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script src="js/data.js?v=1.7.6"></script>
-  <script src="js/game.js?v=1.7.11"></script>
+  <script src="js/game.js?v=1.7.12"></script>
 </body>
 </html>
 
